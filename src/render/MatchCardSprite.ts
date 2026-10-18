@@ -1,40 +1,11 @@
 import { Container, Graphics, Text } from "pixi.js";
-import type { Card, Rune } from "@/game/types";
-import { BOARD_COLORS, CARD_H, CARD_W, DISPLAY_FONT, RUNE_COLORS } from "./theme";
+import gsap from "gsap";
+import { isPrime } from "@/engine/resolution";
+import type { Card } from "@/engine/types";
+import { BOARD_COLORS, CARD_H, CARD_W, DISPLAY_FONT, VALUE_COLORS } from "./theme";
 
-export function drawRune(g: Graphics, rune: Rune, cx: number, cy: number, s: number, color: number, bg: number) {
-  switch (rune) {
-    case "sun":
-      g.circle(cx, cy, s * 0.55).fill(color);
-      for (let i = 0; i < 8; i++) {
-        const a = (i / 8) * Math.PI * 2;
-        g.moveTo(cx + Math.cos(a) * s * 0.75, cy + Math.sin(a) * s * 0.75)
-          .lineTo(cx + Math.cos(a) * s, cy + Math.sin(a) * s)
-          .stroke({ width: Math.max(1.5, s * 0.14), color, cap: "round" });
-      }
-      break;
-    case "moon":
-      g.circle(cx, cy, s * 0.85).fill(color);
-      g.circle(cx + s * 0.4, cy - s * 0.25, s * 0.7).fill(bg);
-      break;
-    case "leaf":
-      g.poly([cx, cy - s, cx + s * 0.65, cy, cx, cy + s, cx - s * 0.65, cy]).fill(color);
-      g.moveTo(cx, cy - s * 0.6).lineTo(cx, cy + s * 0.6).stroke({ width: Math.max(1, s * 0.1), color: bg });
-      break;
-    case "tide":
-      for (let k = -1; k <= 1; k++) {
-        const y = cy + k * s * 0.5;
-        g.moveTo(cx - s, y)
-          .bezierCurveTo(cx - s * 0.5, y - s * 0.4, cx, y + s * 0.4, cx + s * 0.5, y - s * 0.1)
-          .lineTo(cx + s, y - s * 0.2)
-          .stroke({ width: Math.max(1.5, s * 0.16), color, cap: "round" });
-      }
-      break;
-  }
-}
-
-/** A single card display object. Logic-free: it only knows how to look. */
-export class CardSprite extends Container {
+/** A single number card. Logic-free: it only knows how to look. */
+export class MatchCardSprite extends Container {
   readonly body = new Container();
   private readonly face = new Container();
   private readonly back = new Container();
@@ -57,29 +28,31 @@ export class CardSprite extends Container {
   }
 
   private buildFace() {
-    const color = RUNE_COLORS[this.card.rune];
+    const color = VALUE_COLORS[this.card.value] ?? BOARD_COLORS.charcoal;
     const g = new Graphics()
       .roundRect(0, 0, CARD_W, CARD_H, 12)
       .fill(BOARD_COLORS.ivory)
       .stroke({ width: 2, color: BOARD_COLORS.ivoryEdge })
       .roundRect(6, 6, CARD_W - 12, CARD_H - 12, 8)
       .stroke({ width: 2.5, color, alpha: 0.85 });
-    const sym = new Graphics();
-    drawRune(sym, this.card.rune, CARD_W / 2, 106, 11, color, BOARD_COLORS.ivory);
-    drawRune(sym, this.card.rune, 20, 38, 5, color, BOARD_COLORS.ivory);
     const big = new Text({
       text: String(this.card.value),
-      style: { fontFamily: DISPLAY_FONT, fontSize: 54, fontWeight: "800", fill: color },
+      style: { fontFamily: DISPLAY_FONT, fontSize: 58, fontWeight: "800", fill: color },
     });
     big.anchor.set(0.5);
-    big.position.set(CARD_W / 2, 62);
+    big.position.set(CARD_W / 2, CARD_H / 2);
     const corner = new Text({
       text: String(this.card.value),
       style: { fontFamily: DISPLAY_FONT, fontSize: 15, fontWeight: "700", fill: color },
     });
     corner.anchor.set(0.5);
     corner.position.set(20, 21);
-    this.face.addChild(g, sym, big, corner);
+    this.face.addChild(g, big, corner);
+    if (isPrime(this.card.value)) {
+      // Small diamond marks a prime.
+      const d = new Graphics().poly([CARD_W - 20, 12, CARD_W - 12, 20, CARD_W - 20, 28, CARD_W - 28, 20]).fill(color);
+      this.face.addChild(d);
+    }
   }
 
   private buildBack() {
@@ -103,5 +76,11 @@ export class CardSprite extends Container {
     this.faceUp = up;
     this.face.visible = up;
     this.back.visible = !up;
+  }
+
+  /** Kill GSAP tweens first so no animation ever touches a destroyed sprite. */
+  override destroy(options?: Parameters<Container["destroy"]>[0]) {
+    gsap.killTweensOf([this, this.scale, this.body.scale]);
+    super.destroy(options);
   }
 }

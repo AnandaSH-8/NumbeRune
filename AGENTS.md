@@ -13,9 +13,8 @@
 - `src/engine/` is the authoritative pure-TypeScript PrimeGame engine (no React/Pixi/UI imports) so it stays deterministic and testable; tests live next to it.
 - Open rule questions are isolated in `src/engine/config.ts` (and documented helpers like `resolveExhaustedTie`) so they can be finalized in one place.
 - UI and computer players read game state only through `getPlayerView` so hidden selections and opponents' hands never leak.
-- `src/game/` is the legacy placeholder ruleset still driving the current UI; remove it once the UI is moved onto `src/engine/`.
-- `src/store/` (Zustand) is the only bridge between rules and UI; it owns turn timing, CPU scheduling and sound triggers.
-- `src/render/` is PixiJS + GSAP only: it renders a GameState and emits intents via handlers, never mutating game state.
-- PixiJS is loaded via dynamic import inside `PixiBoard`'s effect because it touches browser APIs and must not run during SSR.
+- `src/store/match.ts` (Zustand) is the only bridge between engine and UI; it owns CPU scheduling, thinking delays and sound triggers. Timers never decide game correctness — every move goes through the engine.
+- `src/render/` is PixiJS + GSAP only: `MatchRenderer` renders a `MatchBoardView` derived from `getPlayerView` and emits intents via handlers, never mutating game state. GSAP owns card motion; Framer Motion owns DOM overlays — never both on the same element.
+- PixiJS is loaded via dynamic import inside `MatchBoard`'s effect because it touches browser APIs and must not run during SSR.
 - Settings persist to localStorage with `skipHydration` and are rehydrated in the root component to avoid hydration mismatches.
 - Sounds are synthesized at runtime into WAV data URIs played by Howler, so no audio assets are needed.

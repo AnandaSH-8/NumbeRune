@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { UsernameForm } from "@/components/layout/UsernameForm";
 import { Switch } from "@/components/ui/switch";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import type { Difficulty } from "@/game/types";
+import type { Difficulty } from "@/store/settings";
 import { playSound } from "@/lib/sound";
 import { useSettings, type CpuSpeed } from "@/store/settings";
 
@@ -49,9 +49,23 @@ function SettingsPage() {
             checked={s.soundEnabled}
             onCheckedChange={(v) => {
               s.update({ soundEnabled: v });
-              if (v) playSound("play");
+              if (v) playSound("play", s.volume);
             }}
             aria-label="Sound effects"
+          />
+        </Row>
+        <Row title="Volume" hint="How loud the sound effects are.">
+          <input
+            type="range"
+            min={0}
+            max={100}
+            value={Math.round(s.volume * 100)}
+            disabled={!s.soundEnabled}
+            onChange={(e) => s.update({ volume: Number(e.target.value) / 100 })}
+            onMouseUp={() => playSound("play", s.volume)}
+            onTouchEnd={() => playSound("play", s.volume)}
+            className="w-40 accent-primary disabled:opacity-40"
+            aria-label="Volume"
           />
         </Row>
         <Row title="Reduce motion" hint="Cards move instantly instead of gliding.">

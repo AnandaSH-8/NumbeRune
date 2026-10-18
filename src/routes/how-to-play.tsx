@@ -1,14 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { RuneIcon } from "@/components/game/RuneIcon";
 import { Button } from "@/components/ui/button";
-import { HAND_SIZE, RUNES } from "@/game/types";
-import { RUNE_LABELS } from "@/render/theme";
 
 export const Route = createFileRoute("/how-to-play")({
   head: () => ({
     meta: [
       { title: "How to play Numberune" },
-      { name: "description", content: "Learn the rules of Numberune in a minute: match the rune or the number." },
+      { name: "description", content: "Learn the rules of Numberune: primes strike first, the highest surviving card wins the battle." },
       { property: "og:title", content: "How to play Numberune" },
       { property: "og:description", content: "Learn the rules of Numberune in a minute." },
       { property: "og:type", content: "article" },
@@ -19,25 +16,53 @@ export const Route = createFileRoute("/how-to-play")({
 });
 
 const STEPS = [
-  { title: "Get your hand", body: `You and the computer each get ${HAND_SIZE} cards. One card is flipped face up to start the discard pile.` },
-  { title: "Match to play", body: "On your turn, play one card that matches the top card's rune or its number. A Moon 4 can go on any Moon, or on any 4." },
-  { title: "Can't play? Draw", body: "Tap the draw pile to take one card. If it matches, you can play it right away or keep it and pass. Otherwise your turn ends." },
-  { title: "Empty your hand", body: "The first player with no cards left wins the round. When the draw pile runs out, the discard pile is reshuffled." },
+  {
+    title: "Your hand",
+    body: "You and the computer each start with your own set of cards numbered 1 to 10. Every card is its own card, even when numbers repeat.",
+  },
+  {
+    title: "Secret picks",
+    body: "Each battle, both players secretly choose a card. The choices are revealed together — you never see the computer's pick early.",
+  },
+  {
+    title: "Primes strike first",
+    body: "If any prime (2, 3, 5, 7) is played, it removes every non-prime card it divides. A 2 removes 4, 6, 8 and 10; a 3 removes 6 and 9; a 5 removes 10. Primes never remove primes.",
+  },
+  {
+    title: "The 4-to-8 rule",
+    body: "Only when no prime is played, a 4 removes every 8. Then the highest surviving card wins the battle.",
+  },
+  {
+    title: "Ties replay",
+    body: "If the highest surviving cards tie, only the tied players play another round with a fresh secret pick.",
+  },
+  {
+    title: "The 1 is a bonus",
+    body: "Playing a 1 earns you an immediate extra pick. Chain several 1s to stack the battle in your favor.",
+  },
+  {
+    title: "Capture and modify",
+    body: "The battle winner captures every card played. A prime-power win changes one captured card by −1; a highest-card win by +1. A card at 1 or 10 can be kept as is or discarded for good.",
+  },
+  {
+    title: "Win the match",
+    body: "Losing a battle costs you cards but not your seat. You're only out when your hand is empty — the last player holding cards wins the match.",
+  },
 ];
 
 function HowToPlay() {
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-10">
       <h1 className="text-4xl font-extrabold">How to play</h1>
-      <p className="mt-2 text-muted-foreground">Rounds take about three minutes.</p>
+      <p className="mt-2 text-muted-foreground">A match takes about five minutes.</p>
 
       <div className="mt-6 flex flex-wrap gap-2">
-        {RUNES.map((r) => (
-          <span key={r} className="flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 text-sm font-semibold">
-            <RuneIcon rune={r} className="h-4 w-4" /> {RUNE_LABELS[r]}
+        {[2, 3, 5, 7].map((p) => (
+          <span key={p} className="rounded-full border border-border bg-card px-3 py-1.5 text-sm font-semibold">
+            Prime {p}
           </span>
         ))}
-        <span className="rounded-full border border-border bg-card px-3 py-1.5 text-sm font-semibold">Numbers 1–9</span>
+        <span className="rounded-full border border-border bg-card px-3 py-1.5 text-sm font-semibold">Cards 1–10</span>
       </div>
 
       <ol className="mt-8 grid gap-4 sm:grid-cols-2">
@@ -51,7 +76,7 @@ function HowToPlay() {
       </ol>
 
       <Button asChild size="lg" className="mt-8 h-12 font-bold">
-        <Link to="/play">Start a game</Link>
+        <Link to="/play">Start a match</Link>
       </Button>
     </main>
   );

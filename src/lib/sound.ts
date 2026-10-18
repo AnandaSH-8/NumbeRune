@@ -53,12 +53,13 @@ function synthWav({ freqs, dur }: Tone): string {
 
 const cache = new Map<SoundName, Howl>();
 
-export function playSound(name: SoundName) {
+export function playSound(name: SoundName, volume = 1) {
   if (typeof window === "undefined") return;
   let howl = cache.get(name);
   if (!howl) {
-    howl = new Howl({ src: [synthWav(TONES[name])], format: ["wav"], volume: TONES[name].vol });
+    howl = new Howl({ src: [synthWav(TONES[name])], format: ["wav"] });
     cache.set(name, howl);
   }
+  howl.volume(TONES[name].vol * Math.max(0, Math.min(1, volume)));
   howl.play();
 }

@@ -1,5 +1,3 @@
-import type { Rune } from "@/game/types";
-
 /** Canvas palette (Pixi needs numeric colors; mirrors the CSS tokens in styles.css). */
 export const BOARD_COLORS = {
   ivory: 0xfffaf0,
@@ -9,18 +7,18 @@ export const BOARD_COLORS = {
   shadow: 0x3a2a14,
 } as const;
 
-export const RUNE_COLORS: Record<Rune, number> = {
-  sun: 0xe0850f,
-  moon: 0x5a6894,
-  leaf: 0x5c8a5f,
-  tide: 0x2e8686,
-};
-
-export const RUNE_LABELS: Record<Rune, string> = {
-  sun: "Sun",
-  moon: "Moon",
-  leaf: "Leaf",
-  tide: "Tide",
+/** Muted ink color per card value. Primes wear saffron; 4 and 8 (the special pair) wear tide. */
+export const VALUE_COLORS: Record<number, number> = {
+  1: 0x8a8073,
+  2: 0xe0850f,
+  3: 0xe0850f,
+  4: 0x2e8686,
+  5: 0xe0850f,
+  6: 0x5c8a5f,
+  7: 0xe0850f,
+  8: 0x2e8686,
+  9: 0x5a6894,
+  10: 0x5a6894,
 };
 
 export const CARD_W = 100;
