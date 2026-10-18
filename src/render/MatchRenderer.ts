@@ -118,11 +118,8 @@ export class MatchRenderer {
     const cw = CARD_W * s;
     const ch = CARD_H * s;
     const dur = animate ? 0.45 : 0;
-    const tween = (target: object, vars: gsap.TweenVars, tag: string) => {
-      if ((target as { destroyed?: boolean }).destroyed) {
-        console.error(`TWEEN ON DESTROYED: ${tag}`, new Error("trace").stack);
-        return;
-      }
+    const tween = (target: object, vars: gsap.TweenVars) => {
+      if ((target as { destroyed?: boolean }).destroyed) return;
       gsap.to(target, vars);
     };
 
@@ -140,8 +137,8 @@ export class MatchRenderer {
       if (i < n) {
         b.visible = true;
         b.zIndex = 10 + i;
-        tween(b, { x: W / 2 + (i - (n - 1) / 2) * bStep, y: ch * 0.3 + 8, rotation: 0, duration: dur, ease: "power3.out" }, `back ${i}`);
-        tween(b.scale, { x: backScale, y: backScale, duration: dur }, `back.scale ${i}`);
+        tween(b, { x: W / 2 + (i - (n - 1) / 2) * bStep, y: ch * 0.3 + 8, rotation: 0, duration: dur, ease: "power3.out" });
+        tween(b.scale, { x: backScale, y: backScale, duration: dur });
       } else {
         b.visible = false;
       }
@@ -156,12 +153,11 @@ export class MatchRenderer {
         sprite.position.set(W / 2, H / 2);
         sprite.scale.set(scale);
       }
-      if (sprite.destroyed) console.error(`DESTROYED SPRITE REUSED: ${card.id}`, new Error("trace").stack);
       sprite.base = { x, y, rotation };
       sprite.zIndex = z;
       if (sprite.faceUp !== faceUp) this.flip(sprite, faceUp, dur);
-      tween(sprite, { x, y: sprite.hovered ? y - 18 * s : y, rotation, alpha, duration: dur, ease: "power3.out", overwrite: "auto" }, `place ${card.id}`);
-      tween(sprite.scale, { x: scale, y: scale, duration: dur, ease: "power3.out" }, `place.scale ${card.id}`);
+      tween(sprite, { x, y: sprite.hovered ? y - 18 * s : y, rotation, alpha, duration: dur, ease: "power3.out", overwrite: "auto" });
+      tween(sprite.scale, { x: scale, y: scale, duration: dur, ease: "power3.out" });
       return sprite;
     };
 
@@ -208,7 +204,6 @@ export class MatchRenderer {
     sprite.on("pointerover", () => {
       if (sprite.destroyed || !this.view?.interactive || !this.view.selectableIds.has(card.id)) return;
       sprite.hovered = true;
-      if ((sprite as { destroyed?: boolean }).destroyed) console.error("HOVER DESTROYED", new Error("trace").stack);
       gsap.to(sprite, { y: sprite.base.y - 18 * this.scaleFactor, rotation: 0, duration: 0.18, ease: "power2.out" });
     });
     sprite.on("pointerout", () => {
@@ -233,7 +228,8 @@ export class MatchRenderer {
       sprite.setFace(faceUp);
       return;
     }
-    gsap
+    sprite.flipTl?.kill();
+    sprite.flipTl = gsap
       .timeline()
       .to(sprite.body.scale, { x: 0, duration: dur * 0.4, ease: "power2.in" })
       .call(() => {
