@@ -44,10 +44,21 @@ describe("battle resolution — worked examples from the PDF", () => {
     expect(power(r)).toBe("minus");
   });
 
-  it("D: 2,3,5,7,9 → nothing removed, 9 wins by highest card", () => {
+  // SPEC CONFLICT: Example D says "none of these primes divides 9", but 3 divides 9 and the
+  // prime table and Example C both say 3 eliminates 9. The engine follows the divisibility rule,
+  // so 9 is eliminated and 7 wins. Revisit if the authors meant otherwise.
+  it("D: 2,3,5,7,9 → primes never remove primes; 3 removes 9 (spec text conflicts), 7 wins", () => {
     const r = round(2, 3, 5, 7, 9);
+    expect(r.eliminations.map((e) => e.card.value)).toEqual([9]);
+    expect(r.survivors.map((c) => c.card.value)).toEqual([2, 3, 5, 7]);
+    expect(winnerValue(r)).toBe(7);
+    expect(power(r)).toBe("minus");
+  });
+
+  it("highest-card win with no eliminations  → +1", () => {
+    const r = round(3, 5, 7, 1);
     expect(r.eliminations).toHaveLength(0);
-    expect(winnerValue(r)).toBe(9);
+    expect(winnerValue(r)).toBe(7);
     expect(power(r)).toBe("plus");
   });
 
