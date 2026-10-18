@@ -193,15 +193,17 @@ export class MatchRenderer {
   private createSprite(card: Card) {
     const sprite = new MatchCardSprite(card);
     sprite.on("pointerover", () => {
-      if (!this.view?.interactive || !this.view.selectableIds.has(card.id)) return;
+      if (sprite.destroyed || !this.view?.interactive || !this.view.selectableIds.has(card.id)) return;
       sprite.hovered = true;
       gsap.to(sprite, { y: sprite.base.y - 18 * this.scaleFactor, rotation: 0, duration: 0.18, ease: "power2.out" });
     });
     sprite.on("pointerout", () => {
+      if (sprite.destroyed) return;
       sprite.hovered = false;
       gsap.to(sprite, { y: sprite.base.y, rotation: sprite.base.rotation, duration: 0.2, ease: "power2.out" });
     });
     sprite.on("pointertap", () => {
+      if (sprite.destroyed) return;
       if (this.view?.interactive && this.view.selectableIds.has(card.id)) {
         sprite.hovered = false;
         this.handlers.onSelect(card.id);
