@@ -11,7 +11,7 @@ export function chooseCpuAction(
   if (options.length === 0) return state.drawnCardId ? { type: "pass" } : { type: "draw" };
 
   if (difficulty === "easy") {
-    return { type: "play", cardId: options[Math.floor(rng() * options.length)].id };
+    return { type: "play", cardId: options[Math.floor(rng() * options.length)]!.id };
   }
 
   // Normal: keep the hand flexible — play into the rune we hold most of,
@@ -23,5 +23,5 @@ export function chooseCpuAction(
     return sameRune * 2 + card.value / 10;
   };
   const best = [...options].sort((a, b) => score(b.id) - score(a.id))[0];
-  return { type: "play", cardId: best.id };
+  return { type: "play", cardId: best!.id };
 }

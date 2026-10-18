@@ -28,7 +28,7 @@ function synthWav({ freqs, dur }: Tone): string {
     const t = (i - n * per) / rate;
     const local = (i - n * per) / per;
     const env = Math.min(1, local * 12) * Math.pow(1 - local, 2);
-    data[i] = Math.sin(2 * Math.PI * freqs[n] * t) * env * 0x5fff;
+    data[i] = Math.sin(2 * Math.PI * freqs[n]! * t) * env * 0x5fff;
   }
   const buf = new ArrayBuffer(44 + data.length * 2);
   const v = new DataView(buf);

@@ -32,7 +32,7 @@ export function shuffle<T>(items: readonly T[], rng: Rng): T[] {
   const out = [...items];
   for (let i = out.length - 1; i > 0; i--) {
     const j = Math.floor(rng() * (i + 1));
-    [out[i], out[j]] = [out[j], out[i]];
+    [out[i], out[j]] = [out[j]!, out[i]!];
   }
   return out;
 }
@@ -59,7 +59,7 @@ export function createGame(rng: Rng = Math.random, first: PlayerId = "player"): 
 }
 
 export function topCard(state: GameState): Card {
-  return state.discard[state.discard.length - 1];
+  return state.discard[state.discard.length - 1]!;
 }
 
 export function canPlay(card: Card, top: Card): boolean {
@@ -111,7 +111,7 @@ export function drawCard(state: GameState, id: PlayerId, rng: Rng = Math.random)
   let drawPile = [...state.drawPile];
   let discard = [...state.discard];
   if (drawPile.length === 0 && discard.length > 1) {
-    const top = discard[discard.length - 1];
+    const top = discard[discard.length - 1]!;
     drawPile = shuffle(discard.slice(0, -1), rng);
     discard = [top];
   }
@@ -126,7 +126,7 @@ export function drawCard(state: GameState, id: PlayerId, rng: Rng = Math.random)
   }
 
   const card = drawPile.pop()!;
-  const playable = canPlay(card, discard[discard.length - 1]);
+  const playable = canPlay(card, discard[discard.length - 1]!);
   return {
     ...state,
     drawPile,
