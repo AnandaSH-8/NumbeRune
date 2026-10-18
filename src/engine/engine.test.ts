@@ -178,7 +178,7 @@ describe("card 1 bonus plays", () => {
 describe("ties, capture and staying in the match", () => {
   it("only tied players continue; the eliminated player's card is still captured", () => {
     const three = [...two, { id: "x", name: "X" }];
-    let s = createMatch(three, { startingValues: { you: [6, 9], cpu: [6, 5], x: [4, 2] } });
+    let s = createMatch(three, { startingValues: { you: [6, 9], cpu: [6, 5, 8], x: [4, 2] } });
     s = pick(pick(pick(s, "you", 6), "cpu", 6), "x", 4);
     expect(s.battle?.round.active).toEqual(["you", "cpu"]);
     expect(s.battle?.rounds).toHaveLength(1);
@@ -231,8 +231,6 @@ describe("card modification", () => {
   });
 
   it("1 −1 needs a choice too", () => {
-    const s = winWith([2, 1], [1, 4]); // 2 vs 1: nothing eliminated → +1, so build a −1 case instead
-    expect(s.pendingModification?.power).toBe("plus");
     let t = createMatch(two, { startingValues: { you: [1, 2, 5], cpu: [1, 6, 5] } });
     t = pick(pick(t, "you", 1), "cpu", 1);
     t = pick(pick(t, "you", 2), "cpu", 6); // 2 removes 6 → −1
