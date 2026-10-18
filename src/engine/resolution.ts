@@ -54,16 +54,24 @@ export function resolveRound(contenders: readonly Contender[]): RoundResolution 
 /**
  * Which power applies to the decisive round.
  *
- * Interpretation: an elimination "determines the winner" when it removed a card that
- * was at least as high as the winning card — i.e. without it the winner would have
- * lost or tied. Otherwise the highest-card comparison decided the battle (+1).
- * Example A (2,2,5,6,8): 8 was removed by prime 2 and is higher than 5 → −1.
- * Example D (2,3,5,7,9): nothing removed → +1.
+ * Resolution order is: prime power first, then the 4-to-8 rule, then highest card.
+ * The power is −1 only when the prime step leaves a single surviving card and that
+ * card is a prime (e.g. 2 4 6 8 10 → 2 alone → −1; 3 6 6 9 9 → 3 alone → −1).
+ * If several different values survive, the highest surviving card wins and the
+ * result is +1 — so Examples A, C, D, E and F are all +1. (Example D: the PDF text
+ * says "none of these primes divides 9", but 3 divides 9 and the prime table and
+ * Example C both say 3 eliminates 9; we follow the divisibility rule, so 9 is
+ * eliminated and 7 wins by highest surviving card → +1.)
+ * When the 4-to-8 rule alone decides the win (it removed a card that would
+ * otherwise have won or tied), the configured fourEightWinPower applies.
  */
 export function classifyDecisivePower(resolution: RoundResolution, config: RuleConfig): Power {
   if (!resolution.winnerId) throw new Error("Only a round with a single winner has a decisive power.");
-  const decisive = resolution.eliminations.filter((e) => e.card.value >= resolution.highestValue);
-  if (decisive.length === 0) return "plus";
-  if (decisive.some((e) => e.by === "prime")) return "minus";
-  return resolveFourEightWinPower(config);
+  if (resolution.fourEightApplied) {
+    const decidedByFourEight = resolution.eliminations.some((e) => e.card.value >= resolution.highestValue);
+    if (decidedByFourEight) return resolveFourEightWinPower(config);
+  }
+  const winner = resolution.survivors.find((c) => c.playerId === resolution.winnerId);
+  if (winner && isPrime(winner.card.value) && resolution.survivors.length === 1) return "minus";
+  return "plus";
 }
