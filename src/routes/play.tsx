@@ -182,9 +182,9 @@ function PlayPage() {
     lastBattle && lastRound
       ? lastBattle.end.kind === "won"
         ? `${name(lastBattle.end.winnerId)} wins battle ${lastBattle.number} — ${
-            lastRound.primePlayed && lastRound.eliminations.length > 0
+            lastRound.resolution.primePlayed && lastRound.resolution.eliminations.length > 0
               ? "prime power"
-              : lastRound.fourEightApplied
+              : lastRound.resolution.fourEightApplied
                 ? "the 4-to-8 rule"
                 : "highest card"
           } (${powerLabel(lastBattle.end.power)})`
