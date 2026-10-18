@@ -4,7 +4,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useSettings } from "@/store/settings";
 
-export function UsernameForm({ submitLabel = "Continue", onDone }: { submitLabel?: string; onDone?: () => void }) {
+export function UsernameForm({
+  submitLabel = "Continue",
+  onDone,
+}: {
+  submitLabel?: string;
+  onDone?: () => void;
+}) {
   const current = useSettings((s) => s.username);
   const setUsername = useSettings((s) => s.setUsername);
   const [value, setValue] = useState(current);

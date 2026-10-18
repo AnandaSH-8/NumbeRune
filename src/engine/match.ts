@@ -36,7 +36,11 @@ export interface MatchOptions {
 }
 
 /** Internal mutable twin of MatchState used inside a single transition on a cloned copy. */
-type Mutable<T> = T extends readonly (infer U)[] ? Mutable<U>[] : T extends object ? { -readonly [K in keyof T]: Mutable<T[K]> } : T;
+type Mutable<T> = T extends readonly (infer U)[]
+  ? Mutable<U>[]
+  : T extends object
+    ? { -readonly [K in keyof T]: Mutable<T[K]> }
+    : T;
 type Draft = Mutable<MatchState> & { config: RuleConfig };
 
 interface StoredMatch extends MatchState {
@@ -44,7 +48,10 @@ interface StoredMatch extends MatchState {
   readonly config: RuleConfig;
 }
 
-export function createStartingHand(playerId: PlayerId, values: readonly number[] = defaultValues()): Card[] {
+export function createStartingHand(
+  playerId: PlayerId,
+  values: readonly number[] = defaultValues(),
+): Card[] {
   return values.map((value, i) => {
     assertValue(value);
     return { id: `${playerId}#${i + 1}`, value };
@@ -56,18 +63,24 @@ function defaultValues(): number[] {
 }
 
 function assertValue(v: number) {
-  if (!Number.isInteger(v) || v < MIN_CARD || v > MAX_CARD) throw new EngineError(`Card value ${v} is outside ${MIN_CARD}–${MAX_CARD}.`);
+  if (!Number.isInteger(v) || v < MIN_CARD || v > MAX_CARD)
+    throw new EngineError(`Card value ${v} is outside ${MIN_CARD}–${MAX_CARD}.`);
 }
 
 export function createMatch(setup: readonly PlayerSetup[], options: MatchOptions = {}): MatchState {
   if (setup.length < MIN_PLAYERS || setup.length > MAX_PLAYERS) {
     throw new EngineError(`A match needs ${MIN_PLAYERS}–${MAX_PLAYERS} players.`);
   }
-  if (new Set(setup.map((p) => p.id)).size !== setup.length) throw new EngineError("Player ids must be unique.");
+  if (new Set(setup.map((p) => p.id)).size !== setup.length)
+    throw new EngineError("Player ids must be unique.");
 
   const draft: Draft = {
     config: options.config ?? DEFAULT_RULES,
-    players: setup.map((p) => ({ id: p.id, name: p.name, hand: createStartingHand(p.id, options.startingValues?.[p.id]) })),
+    players: setup.map((p) => ({
+      id: p.id,
+      name: p.name,
+      hand: createStartingHand(p.id, options.startingValues?.[p.id]),
+    })),
     phase: "selecting",
     battle: null,
     pendingModification: null,
@@ -136,12 +149,15 @@ export function awaitingPlayers(state: MatchState): readonly PlayerId[] {
  * selected, all selections are revealed together and the round advances.
  */
 export function submitSelection(state: MatchState, playerId: PlayerId, cardId: string): MatchState {
-  if (state.phase !== "selecting" || !state.battle) throw new EngineError("No card selection is open.");
+  if (state.phase !== "selecting" || !state.battle)
+    throw new EngineError("No card selection is open.");
   const d = clone(state);
   const round = d.battle!.round;
-  if (!round.awaiting.includes(playerId)) throw new EngineError(`${playerId} is not playing at this step.`);
+  if (!round.awaiting.includes(playerId))
+    throw new EngineError(`${playerId} is not playing at this step.`);
   if (playerId in round.selections) throw new EngineError(`${playerId} already selected a card.`);
-  if (!player(d, playerId).hand.some((c) => c.id === cardId)) throw new EngineError("That card is not in the player's hand.");
+  if (!player(d, playerId).hand.some((c) => c.id === cardId))
+    throw new EngineError("That card is not in the player's hand.");
 
   round.selections[playerId] = cardId;
   if (round.awaiting.every((id) => id in round.selections)) revealStep(d);
@@ -163,7 +179,9 @@ function revealStep(d: Draft) {
   round.reveals.push({ step: round.step, cards: revealed });
 
   // Card 1: each revealed 1 earns one more secret play, while the player still has cards.
-  const bonus = round.awaiting.filter((id) => revealed[id]!.value === 1 && player(d, id).hand.length > 0);
+  const bonus = round.awaiting.filter(
+    (id) => revealed[id]!.value === 1 && player(d, id).hand.length > 0,
+  );
   if (bonus.length > 0) {
     round.step += 1;
     round.awaiting = bonus;
@@ -179,7 +197,12 @@ function resolveCurrentRound(d: Draft) {
   // Each player's battle card is the last card they revealed this round.
   const contenders = round.active.map((id) => ({ playerId: id, card: round.plays[id]!.at(-1)! }));
   const resolution = resolveRound(contenders);
-  battle.rounds.push({ active: round.active, reveals: round.reveals, plays: round.plays, resolution } as never);
+  battle.rounds.push({
+    active: round.active,
+    reveals: round.reveals,
+    plays: round.plays,
+    resolution,
+  } as never);
 
   if (resolution.winnerId) {
     // The caller's state is untouched by anything below because we work on a clone.
@@ -189,7 +212,9 @@ function resolveCurrentRound(d: Draft) {
   }
 
   // Tie: only tied players continue. A tied player with no cards cannot play another round.
-  const next = resolveExhaustedTie(resolution.leaders.filter((id) => player(d, id).hand.length > 0));
+  const next = resolveExhaustedTie(
+    resolution.leaders.filter((id) => player(d, id).hand.length > 0),
+  );
   if (next.kind === "continue") battle.round = newRound(next.players);
   else endBattle(d, next.end);
 }
@@ -206,7 +231,15 @@ export function resolveExhaustedTie(
 ): { kind: "continue"; players: PlayerId[] } | { kind: "end"; end: BattleEnd } {
   if (tiedWithCards.length >= 2) return { kind: "continue", players: tiedWithCards };
   if (tiedWithCards.length === 1) {
-    return { kind: "end", end: { kind: "won", winnerId: tiedWithCards[0]!, power: "none", reason: "opponentsExhausted" } };
+    return {
+      kind: "end",
+      end: {
+        kind: "won",
+        winnerId: tiedWithCards[0]!,
+        power: "none",
+        reason: "opponentsExhausted",
+      },
+    };
   }
   return { kind: "end", end: { kind: "noWinner" } };
 }
@@ -214,7 +247,13 @@ export function resolveExhaustedTie(
 function endBattle(d: Draft, end: BattleEnd) {
   const battle = d.battle!;
   const captured = [...battle.pool];
-  const record = { number: battle.number, participants: battle.participants, rounds: battle.rounds, captured, end };
+  const record = {
+    number: battle.number,
+    participants: battle.participants,
+    rounds: battle.rounds,
+    captured,
+    end,
+  };
 
   if (end.kind === "won") player(d, end.winnerId).hand.push(...captured);
 
@@ -222,7 +261,11 @@ function endBattle(d: Draft, end: BattleEnd) {
     d.phase = "modifying";
     d.battle = null;
     d.resolvedBattle = record as never;
-    d.pendingModification = { winnerId: end.winnerId, power: end.power, candidateIds: captured.map((c) => c.id) };
+    d.pendingModification = {
+      winnerId: end.winnerId,
+      power: end.power,
+      candidateIds: captured.map((c) => c.id),
+    };
     return;
   }
   d.history.push({ ...record, modification: null } as never);
@@ -231,7 +274,10 @@ function endBattle(d: Draft, end: BattleEnd) {
 }
 
 /** Result of applying a power to a value: a new value, or a boundary that needs a keep/discard choice. */
-export function applyPower(value: number, power: Exclude<Power, "none">): { kind: "value"; value: number } | { kind: "boundary" } {
+export function applyPower(
+  value: number,
+  power: Exclude<Power, "none">,
+): { kind: "value"; value: number } | { kind: "boundary" } {
   const next = value + (power === "plus" ? 1 : -1);
   return next < MIN_CARD || next > MAX_CARD ? { kind: "boundary" } : { kind: "value", value: next };
 }
@@ -247,9 +293,12 @@ export function applyModification(
   boundaryChoice?: BoundaryChoice,
 ): MatchState {
   const pending = state.pendingModification;
-  if (state.phase !== "modifying" || !pending) throw new EngineError("No card modification is pending.");
-  if (pending.winnerId !== playerId) throw new EngineError("Only the battle winner can modify a card.");
-  if (!pending.candidateIds.includes(cardId)) throw new EngineError("Choose one of the cards captured in this battle.");
+  if (state.phase !== "modifying" || !pending)
+    throw new EngineError("No card modification is pending.");
+  if (pending.winnerId !== playerId)
+    throw new EngineError("Only the battle winner can modify a card.");
+  if (!pending.candidateIds.includes(cardId))
+    throw new EngineError("Choose one of the cards captured in this battle.");
 
   const d = clone(state);
   const hand = player(d, playerId).hand;
@@ -263,7 +312,8 @@ export function applyModification(
     hand[idx] = { ...card, value: result.value };
     modification = { cardId, from: card.value, to: result.value, outcome: "changed" };
   } else {
-    if (!boundaryChoice) throw new EngineError("This card is at its limit: choose to keep or discard it.");
+    if (!boundaryChoice)
+      throw new EngineError("This card is at its limit: choose to keep or discard it.");
     if (boundaryChoice === "discard") hand.splice(idx, 1);
     modification = {
       cardId,

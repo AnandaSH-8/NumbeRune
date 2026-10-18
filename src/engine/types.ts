@@ -85,7 +85,12 @@ export interface Battle {
 }
 
 export type BattleEnd =
-  | { readonly kind: "won"; readonly winnerId: PlayerId; readonly power: Power; readonly reason: "decided" | "opponentsExhausted" }
+  | {
+      readonly kind: "won";
+      readonly winnerId: PlayerId;
+      readonly power: Power;
+      readonly reason: "decided" | "opponentsExhausted";
+    }
   | { readonly kind: "noWinner" };
 
 export interface Modification {

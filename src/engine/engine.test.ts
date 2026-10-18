@@ -16,8 +16,10 @@ import {
 
 const round = (...values: number[]) =>
   resolveRound(values.map((v, i) => ({ playerId: `p${i}`, card: { id: `c${i}`, value: v } })));
-const winnerValue = (r: ReturnType<typeof round>) => r.contenders.find((c) => c.playerId === r.winnerId)?.card.value;
-const power = (r: ReturnType<typeof round>, config: RuleConfig = DEFAULT_RULES) => classifyDecisivePower(r, config);
+const winnerValue = (r: ReturnType<typeof round>) =>
+  r.contenders.find((c) => c.playerId === r.winnerId)?.card.value;
+const power = (r: ReturnType<typeof round>, config: RuleConfig = DEFAULT_RULES) =>
+  classifyDecisivePower(r, config);
 
 describe("battle resolution — worked examples from the PDF", () => {
   it("A: 2,2,5,6,8 → 2 removes 6 and 8; 2, 2, 5 survive, so 5 wins by highest → +1", () => {
@@ -77,7 +79,9 @@ describe("battle resolution — worked examples from the PDF", () => {
 
   it("prime table: 2→4,6,8,10  3→6,9  5→10  7→none", () => {
     const removed = (p: number) =>
-      round(p, 1, 4, 6, 8, 9, 10).eliminations.filter((e) => e.eliminatorValues.includes(p)).map((e) => e.card.value);
+      round(p, 1, 4, 6, 8, 9, 10)
+        .eliminations.filter((e) => e.eliminatorValues.includes(p))
+        .map((e) => e.card.value);
     expect(removed(2)).toEqual([4, 6, 8, 10]);
     expect(removed(3)).toEqual([6, 9]);
     expect(removed(5)).toEqual([10]);
@@ -133,20 +137,32 @@ describe("4-to-8 win classification", () => {
     expect(power(round(4, 8), { fourEightWinPower: "none" })).toBe("none");
   });
   it("applies the −1 in a real match", () => {
-    const m = createMatch([{ id: "a", name: "A" }, { id: "b", name: "B" }], { startingValues: { a: [4], b: [8, 1] } });
+    const m = createMatch(
+      [
+        { id: "a", name: "A" },
+        { id: "b", name: "B" },
+      ],
+      { startingValues: { a: [4], b: [8, 1] } },
+    );
     const s = submitSelection(submitSelection(m, "a", "a#1"), "b", "b#1");
     expect(s.pendingModification).toMatchObject({ winnerId: "a", power: "minus" });
   });
 });
 
 // --- Match flow helpers --------------------------------------------------
-const two = [{ id: "you", name: "You" }, { id: "cpu", name: "CPU" }];
+const two = [
+  { id: "you", name: "You" },
+  { id: "cpu", name: "CPU" },
+];
 const pick = (s: MatchState, pid: string, value: number) => {
   const card = getPlayer(s, pid).hand.find((c) => c.value === value);
   if (!card) throw new Error(`${pid} has no ${value}`);
   return submitSelection(s, pid, card.id);
 };
-const values = (s: MatchState, pid: string) => getPlayer(s, pid).hand.map((c) => c.value).sort((a, b) => a - b);
+const values = (s: MatchState, pid: string) =>
+  getPlayer(s, pid)
+    .hand.map((c) => c.value)
+    .sort((a, b) => a - b);
 
 describe("match setup", () => {
   it("each player starts with individual cards 1–10", () => {
@@ -169,7 +185,11 @@ describe("hidden selections", () => {
     const view = getPlayerView(s, "you");
     expect(view.battle?.lockedIn).toEqual(["cpu"]);
     expect(JSON.stringify(view)).not.toContain("cpu#9");
-    expect(view.players.find((p) => p.id === "cpu")).toEqual({ id: "cpu", name: "CPU", cardCount: 10 });
+    expect(view.players.find((p) => p.id === "cpu")).toEqual({
+      id: "cpu",
+      name: "CPU",
+      cardCount: 10,
+    });
   });
   it("a card cannot be selected twice or out of turn", () => {
     let s = pick(createMatch(two), "you", 5);
@@ -238,7 +258,7 @@ describe("ties, capture and staying in the match", () => {
 
 describe("card modification", () => {
   const winWith = (you: number[], cpu: number[]) => {
-    let s = createMatch(two, { startingValues: { you, cpu } });
+    const s = createMatch(two, { startingValues: { you, cpu } });
     return pick(pick(s, "you", you[0]!), "cpu", cpu[0]!);
   };
 

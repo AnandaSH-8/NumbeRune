@@ -11,7 +11,10 @@ export const Route = createFileRoute("/settings")({
   head: () => ({
     meta: [
       { title: "Settings — Numberune" },
-      { name: "description", content: "Change your name, sound, motion and computer opponent settings." },
+      {
+        name: "description",
+        content: "Change your name, sound, motion and computer opponent settings.",
+      },
       { property: "og:title", content: "Settings — Numberune" },
       { property: "og:description", content: "Tune Numberune to your liking." },
       { property: "og:type", content: "website" },
@@ -69,19 +72,43 @@ function SettingsPage() {
           />
         </Row>
         <Row title="Reduce motion" hint="Cards move instantly instead of gliding.">
-          <Switch checked={s.reducedMotion} onCheckedChange={(v) => s.update({ reducedMotion: v })} aria-label="Reduce motion" />
+          <Switch
+            checked={s.reducedMotion}
+            onCheckedChange={(v) => s.update({ reducedMotion: v })}
+            aria-label="Reduce motion"
+          />
         </Row>
         <Row title="Computer skill" hint="Easy plays randomly; Normal plans ahead.">
-          <ToggleGroup type="single" variant="outline" value={s.difficulty} onValueChange={(v) => v && s.update({ difficulty: v as Difficulty })}>
-            <ToggleGroupItem value="easy" className="px-4">Easy</ToggleGroupItem>
-            <ToggleGroupItem value="normal" className="px-4">Normal</ToggleGroupItem>
+          <ToggleGroup
+            type="single"
+            variant="outline"
+            value={s.difficulty}
+            onValueChange={(v) => v && s.update({ difficulty: v as Difficulty })}
+          >
+            <ToggleGroupItem value="easy" className="px-4">
+              Easy
+            </ToggleGroupItem>
+            <ToggleGroupItem value="normal" className="px-4">
+              Normal
+            </ToggleGroupItem>
           </ToggleGroup>
         </Row>
         <Row title="Computer speed" hint="How long the computer thinks.">
-          <ToggleGroup type="single" variant="outline" value={s.cpuSpeed} onValueChange={(v) => v && s.update({ cpuSpeed: v as CpuSpeed })}>
-            <ToggleGroupItem value="relaxed" className="px-3">Relaxed</ToggleGroupItem>
-            <ToggleGroupItem value="normal" className="px-3">Normal</ToggleGroupItem>
-            <ToggleGroupItem value="quick" className="px-3">Quick</ToggleGroupItem>
+          <ToggleGroup
+            type="single"
+            variant="outline"
+            value={s.cpuSpeed}
+            onValueChange={(v) => v && s.update({ cpuSpeed: v as CpuSpeed })}
+          >
+            <ToggleGroupItem value="relaxed" className="px-3">
+              Relaxed
+            </ToggleGroupItem>
+            <ToggleGroupItem value="normal" className="px-3">
+              Normal
+            </ToggleGroupItem>
+            <ToggleGroupItem value="quick" className="px-3">
+              Quick
+            </ToggleGroupItem>
           </ToggleGroup>
         </Row>
       </div>

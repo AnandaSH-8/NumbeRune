@@ -5,7 +5,11 @@ export const Route = createFileRoute("/how-to-play")({
   head: () => ({
     meta: [
       { title: "How to play Numberune" },
-      { name: "description", content: "Learn the rules of Numberune: primes strike first, the highest surviving card wins the battle." },
+      {
+        name: "description",
+        content:
+          "Learn the rules of Numberune: primes strike first, the highest surviving card wins the battle.",
+      },
       { property: "og:title", content: "How to play Numberune" },
       { property: "og:description", content: "Learn the rules of Numberune in a minute." },
       { property: "og:type", content: "article" },
@@ -58,17 +62,24 @@ function HowToPlay() {
 
       <div className="mt-6 flex flex-wrap gap-2">
         {[2, 3, 5, 7].map((p) => (
-          <span key={p} className="rounded-full border border-border bg-card px-3 py-1.5 text-sm font-semibold">
+          <span
+            key={p}
+            className="rounded-full border border-border bg-card px-3 py-1.5 text-sm font-semibold"
+          >
             Prime {p}
           </span>
         ))}
-        <span className="rounded-full border border-border bg-card px-3 py-1.5 text-sm font-semibold">Cards 1–10</span>
+        <span className="rounded-full border border-border bg-card px-3 py-1.5 text-sm font-semibold">
+          Cards 1–10
+        </span>
       </div>
 
       <ol className="mt-8 grid gap-4 sm:grid-cols-2">
         {STEPS.map((s, i) => (
           <li key={s.title} className="rounded-2xl border border-border bg-card p-5 shadow-soft">
-            <span className="grid h-8 w-8 place-items-center rounded-full bg-accent font-display font-bold text-accent-foreground">{i + 1}</span>
+            <span className="grid h-8 w-8 place-items-center rounded-full bg-accent font-display font-bold text-accent-foreground">
+              {i + 1}
+            </span>
             <h2 className="mt-3 text-lg font-bold">{s.title}</h2>
             <p className="mt-1 text-sm text-muted-foreground">{s.body}</p>
           </li>

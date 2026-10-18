@@ -13,11 +13,15 @@ export class MatchCardSprite extends Container {
   faceUp = false;
   base = { x: 0, y: 0, rotation: 0 };
   hovered = false;
+  /** The in-flight flip animation, if any — killed on destroy and before a new flip. */
+  flipTl: gsap.core.Timeline | null = null;
 
   constructor(readonly card: Card) {
     super();
     this.pivot.set(CARD_W / 2, CARD_H / 2);
-    this.shadow.roundRect(2, 6, CARD_W, CARD_H, 12).fill({ color: BOARD_COLORS.shadow, alpha: 0.16 });
+    this.shadow
+      .roundRect(2, 6, CARD_W, CARD_H, 12)
+      .fill({ color: BOARD_COLORS.shadow, alpha: 0.16 });
     this.body.pivot.set(CARD_W / 2, 0);
     this.body.x = CARD_W / 2;
     this.buildFace();
@@ -50,7 +54,9 @@ export class MatchCardSprite extends Container {
     this.face.addChild(g, big, corner);
     if (isPrime(this.card.value)) {
       // Small diamond marks a prime.
-      const d = new Graphics().poly([CARD_W - 20, 12, CARD_W - 12, 20, CARD_W - 20, 28, CARD_W - 28, 20]).fill(color);
+      const d = new Graphics()
+        .poly([CARD_W - 20, 12, CARD_W - 12, 20, CARD_W - 20, 28, CARD_W - 28, 20])
+        .fill(color);
       this.face.addChild(d);
     }
   }
@@ -65,7 +71,12 @@ export class MatchCardSprite extends Container {
       .stroke({ width: 2, color: BOARD_COLORS.saffron, alpha: 0.5 });
     const n = new Text({
       text: "N",
-      style: { fontFamily: DISPLAY_FONT, fontSize: 26, fontWeight: "800", fill: BOARD_COLORS.saffron },
+      style: {
+        fontFamily: DISPLAY_FONT,
+        fontSize: 26,
+        fontWeight: "800",
+        fill: BOARD_COLORS.saffron,
+      },
     });
     n.anchor.set(0.5);
     n.position.set(CARD_W / 2, CARD_H / 2);
@@ -78,8 +89,10 @@ export class MatchCardSprite extends Container {
     this.back.visible = !up;
   }
 
-  /** Kill GSAP tweens first so no animation ever touches a destroyed sprite. */
+  /** Kill GSAP tweens and the flip timeline first so no animation ever touches a destroyed sprite. */
   override destroy(options?: Parameters<Container["destroy"]>[0]) {
+    this.flipTl?.kill();
+    this.flipTl = null;
     gsap.killTweensOf([this, this.scale, this.body.scale]);
     super.destroy(options);
   }
