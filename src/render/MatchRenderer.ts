@@ -222,7 +222,9 @@ export class MatchRenderer {
     gsap
       .timeline()
       .to(sprite.body.scale, { x: 0, duration: dur * 0.4, ease: "power2.in" })
-      .call(() => sprite.setFace(faceUp))
+      .call(() => {
+        if (!sprite.destroyed) sprite.setFace(faceUp);
+      })
       .to(sprite.body.scale, { x: 1, duration: dur * 0.4, ease: "power2.out" });
   }
 }
