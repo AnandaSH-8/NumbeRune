@@ -8,6 +8,8 @@ export type CpuSpeed = "relaxed" | "normal" | "quick";
 interface SettingsState {
   username: string;
   soundEnabled: boolean;
+  /** 0–1 master volume for sound effects. */
+  volume: number;
   reducedMotion: boolean;
   difficulty: Difficulty;
   cpuSpeed: CpuSpeed;
@@ -23,6 +25,7 @@ export const useSettings = create<SettingsState>()(
     (set) => ({
       username: "",
       soundEnabled: true,
+      volume: 0.8,
       reducedMotion: false,
       difficulty: "normal",
       cpuSpeed: "normal",

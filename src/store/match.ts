@@ -30,7 +30,8 @@ interface MatchStore {
 let cpuTimer: ReturnType<typeof setTimeout> | null = null;
 
 function sfx(name: SoundName) {
-  if (useSettings.getState().soundEnabled) playSound(name);
+  const { soundEnabled, volume } = useSettings.getState();
+  if (soundEnabled) playSound(name, volume);
 }
 
 export const useMatch = create<MatchStore>()((set, get) => {
