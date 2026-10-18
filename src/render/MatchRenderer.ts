@@ -234,9 +234,17 @@ export class MatchRenderer {
 
     for (const [id, sprite] of this.sprites) {
       if (!seen.has(id)) {
-        gsap.killTweensOf([sprite, sprite.scale, sprite.body.scale]);
-        sprite.destroy({ children: true });
         this.sprites.delete(id);
+        sprite.eventMode = "none";
+        sprite.hovered = false;
+        gsap.killTweensOf([sprite, sprite.scale, sprite.body.scale]);
+        sprite.flipTl?.kill();
+        // Fade out and destroy only once the fade is done, so no tween ever races destruction.
+        gsap.to(sprite, {
+          alpha: 0,
+          duration: animate ? 0.25 : 0,
+          onComplete: () => sprite.destroy({ children: true }),
+        });
       }
     }
   }
