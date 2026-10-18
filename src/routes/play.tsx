@@ -218,6 +218,22 @@ function PlayPage() {
       <div className="relative min-h-[460px] flex-1 overflow-hidden rounded-3xl border border-felt-edge bg-felt shadow-soft">
         <MatchBoard view={board} onSelect={select} className="absolute inset-0" />
 
+        <div className="pointer-events-none absolute inset-x-0 top-12 flex justify-center">
+          <AnimatePresence mode="wait">
+            {resultChip && (
+              <motion.p
+                key={resultChip}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="rounded-full bg-card/80 px-3 py-1 text-xs font-semibold text-muted-foreground"
+              >
+                {resultChip}
+              </motion.p>
+            )}
+          </AnimatePresence>
+        </div>
+
         <div className="pointer-events-none absolute inset-x-0 top-3 flex justify-center">
           <AnimatePresence mode="wait">
             <motion.div
