@@ -89,7 +89,9 @@ export class MatchRenderer {
   destroy() {
     this.destroyed = true;
     this.observer?.disconnect();
-    for (const s of this.sprites.values()) gsap.killTweensOf([s, s.scale, s.body.scale]);
+    for (const s of [...this.sprites.values(), ...this.backs]) {
+      gsap.killTweensOf([s, s.scale, s.body.scale]);
+    }
     if (this.ready) this.app.destroy(true, { children: true });
   }
 
