@@ -20,11 +20,11 @@ const winnerValue = (r: ReturnType<typeof round>) => r.contenders.find((c) => c.
 const power = (r: ReturnType<typeof round>, config: RuleConfig = DEFAULT_RULES) => classifyDecisivePower(r, config);
 
 describe("battle resolution — worked examples from the PDF", () => {
-  it("A: 2,2,5,6,8 → 2 removes 6 and 8, 5 wins outright (no extra round for the 2s)", () => {
+  it("A: 2,2,5,6,8 → 2 removes 6 and 8; 2, 2, 5 survive, so 5 wins by highest → +1", () => {
     const r = round(2, 2, 5, 6, 8);
     expect(r.eliminations.map((e) => e.card.value).sort()).toEqual([6, 8]);
     expect(winnerValue(r)).toBe(5);
-    expect(power(r)).toBe("minus");
+    expect(power(r)).toBe("plus");
   });
 
   it("B: 6,6,8,8,4 → no prime, 4 removes both 8s, the two 6s tie", () => {
@@ -35,23 +35,23 @@ describe("battle resolution — worked examples from the PDF", () => {
     expect(r.leaders).toEqual(["p0", "p1"]);
   });
 
-  it("C: 2,3,6,9,10 → 6, 9, 10 removed; 3 beats 2", () => {
+  it("C: 2,3,6,9,10 → 6, 9, 10 removed; 2 and 3 survive, 3 wins by highest → +1", () => {
     const r = round(2, 3, 6, 9, 10);
     expect(r.survivors.map((s) => s.card.value)).toEqual([2, 3]);
     expect(r.eliminations.find((e) => e.card.value === 6)?.eliminatorValues).toEqual([2, 3]);
     expect(winnerValue(r)).toBe(3);
-    expect(power(r)).toBe("minus");
+    expect(power(r)).toBe("plus");
   });
 
   // SPEC CONFLICT: Example D says "none of these primes divides 9", but 3 divides 9 and the
   // prime table and Example C both say 3 eliminates 9. The engine follows the divisibility rule,
-  // so 9 is eliminated and 7 wins. Revisit if the authors meant otherwise.
-  it("D: 2,3,5,7,9 → primes never remove primes; 3 removes 9 (spec text conflicts), 7 wins", () => {
+  // so 9 is eliminated and 7 wins by highest surviving card → +1.
+  it("D: 2,3,5,7,9 → primes never remove primes; 3 removes 9 (spec text conflicts), 7 wins → +1", () => {
     const r = round(2, 3, 5, 7, 9);
     expect(r.eliminations.map((e) => e.card.value)).toEqual([9]);
     expect(r.survivors.map((c) => c.card.value)).toEqual([2, 3, 5, 7]);
     expect(winnerValue(r)).toBe(7);
-    expect(power(r)).toBe("minus");
+    expect(power(r)).toBe("plus");
   });
 
   it("highest-card win with no eliminations  → +1", () => {
@@ -61,11 +61,11 @@ describe("battle resolution — worked examples from the PDF", () => {
     expect(power(r)).toBe("plus");
   });
 
-  it("E: 2,3,4,6,8 → 2 removes 4, 6, 8; 3 wins", () => {
+  it("E: 2,3,4,6,8 → 2 removes 4, 6, 8; 2 and 3 survive, 3 wins by highest → +1", () => {
     const r = round(2, 3, 4, 6, 8);
     expect(r.eliminations.map((e) => e.card.value)).toEqual([4, 6, 8]);
     expect(winnerValue(r)).toBe(3);
-    expect(power(r)).toBe("minus");
+    expect(power(r)).toBe("plus");
   });
 
   it("F: 2,2,2,2,7 → primes never remove primes, 7 wins", () => {
@@ -95,20 +95,47 @@ describe("battle resolution — worked examples from the PDF", () => {
   });
 });
 
-describe("unresolved 4-to-8 win classification", () => {
-  it("is refused by default instead of guessing", () => {
-    expect(() => power(round(4, 8))).toThrow(UnresolvedRuleError);
+describe("prime power −1: the winner is a prime and the only surviving card", () => {
+  it("2 4 6 8 10 → 2 removes everything else and wins alone → −1", () => {
+    const r = round(2, 4, 6, 8, 10);
+    expect(r.survivors.map((s) => s.card.value)).toEqual([2]);
+    expect(winnerValue(r)).toBe(2);
+    expect(power(r)).toBe("minus");
   });
-  it("follows the configured decision once finalized", () => {
-    expect(power(round(4, 8), { fourEightWinPower: "minus" })).toBe("minus");
+
+  it("3 6 6 9 9 → 3 removes everything else and wins alone → −1", () => {
+    const r = round(3, 6, 6, 9, 9);
+    expect(r.survivors.map((s) => s.card.value)).toEqual([3]);
+    expect(winnerValue(r)).toBe(3);
+    expect(power(r)).toBe("minus");
+  });
+
+  it("surviving primes that tie go to another round (no winner, no power)", () => {
+    const r = round(2, 2, 4, 8);
+    expect(r.survivors.map((s) => s.card.value)).toEqual([2, 2]);
+    expect(r.winnerId).toBeNull();
+  });
+
+  it("several different surviving values → highest decides → +1", () => {
+    const r = round(2, 5, 10);
+    expect(r.survivors.map((s) => s.card.value)).toEqual([2, 5]);
+    expect(winnerValue(r)).toBe(5);
+    expect(power(r)).toBe("plus");
+  });
+});
+
+describe("4-to-8 win classification", () => {
+  it("defaults to −1 when the 4-to-8 rule alone decides the win", () => {
+    expect(power(round(4, 8))).toBe("minus");
+  });
+  it("stays configurable", () => {
     expect(power(round(4, 8), { fourEightWinPower: "plus" })).toBe("plus");
     expect(power(round(4, 8), { fourEightWinPower: "none" })).toBe("none");
   });
-  it("leaves match state untouched when it fires", () => {
-    const m = createMatch([{ id: "a", name: "A" }, { id: "b", name: "B" }], { startingValues: { a: [4], b: [8] } });
-    const s = submitSelection(m, "a", "a#1");
-    expect(() => submitSelection(s, "b", "b#1")).toThrow(UnresolvedRuleError);
-    expect(awaitingPlayers(s)).toEqual(["b"]);
+  it("applies the −1 in a real match", () => {
+    const m = createMatch([{ id: "a", name: "A" }, { id: "b", name: "B" }], { startingValues: { a: [4], b: [8, 1] } });
+    const s = submitSelection(submitSelection(m, "a", "a#1"), "b", "b#1");
+    expect(s.pendingModification).toMatchObject({ winnerId: "a", power: "minus" });
   });
 });
 
