@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
-import type { Difficulty } from "@/game/types";
+
+export type Difficulty = "easy" | "normal";
 
 export type CpuSpeed = "relaxed" | "normal" | "quick";
 

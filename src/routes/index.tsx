@@ -2,18 +2,16 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { BookOpen, Play, Settings } from "lucide-react";
 import { useState } from "react";
-import { RuneIcon } from "@/components/game/RuneIcon";
 import { UsernameForm } from "@/components/layout/UsernameForm";
 import { Button } from "@/components/ui/button";
-import { RUNES } from "@/game/types";
 import { useSettings } from "@/store/settings";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Numberune — Match runes, empty your hand" },
-      { name: "description", content: "A calm, quick browser card game. Match runes or numbers and beat the computer." },
-      { property: "og:title", content: "Numberune — Match runes, empty your hand" },
+      { title: "Numberune — Primes strike, highest survives" },
+      { name: "description", content: "A calm, quick browser card game. Outplay the computer with primes, bonuses and lucky sevens." },
+      { property: "og:title", content: "Numberune — Primes strike, highest survives" },
       { property: "og:description", content: "A calm, quick browser card game against the computer." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -32,19 +30,19 @@ function Home() {
     <main className="mx-auto grid w-full max-w-6xl flex-1 items-center gap-10 px-4 py-10 md:grid-cols-2 md:py-16">
       <div>
         <div className="mb-5 flex gap-2">
-          {RUNES.map((r) => (
-            <span key={r} className="grid h-9 w-9 place-items-center rounded-xl bg-card shadow-soft">
-              <RuneIcon rune={r} />
+          {[2, 3, 5, 7].map((n) => (
+            <span key={n} className="grid h-9 w-9 place-items-center rounded-xl bg-card font-display font-bold text-primary shadow-soft">
+              {n}
             </span>
           ))}
         </div>
         <h1 className="text-4xl font-extrabold leading-tight sm:text-5xl">
-          Match the rune.
+          Primes strike first.
           <br />
-          <span className="text-primary">Or match the number.</span>
+          <span className="text-primary">The highest card survives.</span>
         </h1>
         <p className="mt-4 max-w-md text-lg text-muted-foreground">
-          Numberune is a quick, friendly card game. Be the first to empty your hand against the computer.
+          Numberune is a quick, tactical card duel. Pick cards in secret, bend the numbers with primes, and outlast the computer.
         </p>
       </div>
 
