@@ -145,12 +145,6 @@ export class MatchRenderer {
     }
 
     const seen = new Set<string>();
-      if ((target as { destroyed?: boolean }).destroyed) {
-        console.error(`TWEEN ON DESTROYED: ${tag}`, new Error("trace").stack);
-        return;
-      }
-      gsap.to(target, vars);
-    };
     const place = (card: Card, x: number, y: number, rotation: number, z: number, faceUp: boolean, scale = s, alpha = 1) => {
       seen.add(card.id);
       let sprite = this.sprites.get(card.id);
