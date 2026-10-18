@@ -115,6 +115,13 @@ export class MatchRenderer {
     const cw = CARD_W * s;
     const ch = CARD_H * s;
     const dur = animate ? 0.45 : 0;
+    const tween = (target: object, vars: gsap.TweenVars, tag: string) => {
+      if ((target as { destroyed?: boolean }).destroyed) {
+        console.error(`TWEEN ON DESTROYED: ${tag}`, new Error("trace").stack);
+        return;
+      }
+      gsap.to(target, vars);
+    };
 
     // Arena ring + label
     this.arenaRing.clear().ellipse(W / 2, H / 2, Math.min(W * 0.34, 300 * s), ch * 0.95).stroke({ width: 2, color: BOARD_COLORS.saffron, alpha: 0.25 });
@@ -130,15 +137,14 @@ export class MatchRenderer {
       if (i < n) {
         b.visible = true;
         b.zIndex = 10 + i;
-        gsap.to(b, { x: W / 2 + (i - (n - 1) / 2) * bStep, y: ch * 0.3 + 8, rotation: 0, duration: dur, ease: "power3.out" });
-        gsap.to(b.scale, { x: backScale, y: backScale, duration: dur });
+        tween(b, { x: W / 2 + (i - (n - 1) / 2) * bStep, y: ch * 0.3 + 8, rotation: 0, duration: dur, ease: "power3.out" }, `back ${i}`);
+        tween(b.scale, { x: backScale, y: backScale, duration: dur }, `back.scale ${i}`);
       } else {
         b.visible = false;
       }
     }
 
     const seen = new Set<string>();
-    const tween = (target: object, vars: gsap.TweenVars, tag: string) => {
       if ((target as { destroyed?: boolean }).destroyed) {
         console.error(`TWEEN ON DESTROYED: ${tag}`, new Error("trace").stack);
         return;
@@ -205,6 +211,7 @@ export class MatchRenderer {
     sprite.on("pointerover", () => {
       if (sprite.destroyed || !this.view?.interactive || !this.view.selectableIds.has(card.id)) return;
       sprite.hovered = true;
+      if ((sprite as { destroyed?: boolean }).destroyed) console.error("HOVER DESTROYED", new Error("trace").stack);
       gsap.to(sprite, { y: sprite.base.y - 18 * this.scaleFactor, rotation: 0, duration: 0.18, ease: "power2.out" });
     });
     sprite.on("pointerout", () => {
