@@ -89,6 +89,28 @@ function PlayPage() {
 
   useEffect(() => () => stop(), [stop]);
 
+  // Keyboard play: ←/→ move through the hand, Enter confirms the highlighted card.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const st = useMatch.getState().state;
+      if (!st || st.phase !== "selecting" || !awaitingPlayers(st).includes(YOU)) return;
+      const hand = getPlayerView(st, YOU).hand;
+      if (hand.length === 0) return;
+      const { selectedId } = useMatch.getState();
+      const idx = hand.findIndex((c) => c.id === selectedId);
+      if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
+        e.preventDefault();
+        const next = hand[(idx + (e.key === "ArrowRight" ? 1 : hand.length - 1) + hand.length) % hand.length]!;
+        useMatch.getState().select(next.id);
+      } else if ((e.key === "Enter" || e.key === " ") && selectedId) {
+        e.preventDefault();
+        useMatch.getState().confirm();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
   const view = useMemo(() => (state ? getPlayerView(state, YOU) : null), [state]);
 
   const board = useMemo<MatchBoardView | null>(() => {
@@ -152,6 +174,22 @@ function PlayPage() {
     ...state.history,
     ...(state.resolvedBattle ? [{ ...state.resolvedBattle, modification: null }] : []),
   ];
+
+  // Brief result chip: the decisive round of the latest battle, naming the rule that won it.
+  const lastBattle = historyBattles.at(-1);
+  const lastRound = lastBattle?.rounds.at(-1);
+  const resultChip =
+    lastBattle && lastRound
+      ? lastBattle.end.kind === "won"
+        ? `${name(lastBattle.end.winnerId)} wins battle ${lastBattle.number} — ${
+            lastRound.primePlayed && lastRound.eliminations.length > 0
+              ? "prime power"
+              : lastRound.fourEightApplied
+                ? "the 4-to-8 rule"
+                : "highest card"
+          } (${powerLabel(lastBattle.end.power)})`
+        : `Battle ${lastBattle.number} ended with no winner`
+      : null;
 
   return (
     <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col px-3 pb-3 pt-3 sm:px-4">
