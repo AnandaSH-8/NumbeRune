@@ -13,6 +13,8 @@ export class MatchCardSprite extends Container {
   faceUp = false;
   base = { x: 0, y: 0, rotation: 0 };
   hovered = false;
+  /** The in-flight flip animation, if any — killed on destroy and before a new flip. */
+  flipTl: gsap.core.Timeline | null = null;
 
   constructor(readonly card: Card) {
     super();
@@ -78,8 +80,10 @@ export class MatchCardSprite extends Container {
     this.back.visible = !up;
   }
 
-  /** Kill GSAP tweens first so no animation ever touches a destroyed sprite. */
+  /** Kill GSAP tweens and the flip timeline first so no animation ever touches a destroyed sprite. */
   override destroy(options?: Parameters<Container["destroy"]>[0]) {
+    this.flipTl?.kill();
+    this.flipTl = null;
     gsap.killTweensOf([this, this.scale, this.body.scale]);
     super.destroy(options);
   }
