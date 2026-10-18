@@ -51,7 +51,10 @@ export class MatchRenderer {
   private destroyed = false;
   private scaleFactor = 1;
 
-  constructor(private handlers: MatchBoardHandlers) {}
+  constructor(private handlers: MatchBoardHandlers) {
+    // Initialize tweens at creation time so a tween can never start up on an already-destroyed sprite.
+    gsap.defaults({ lazy: false });
+  }
 
   async init(el: HTMLElement) {
     await this.app.init({
