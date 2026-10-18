@@ -138,6 +138,13 @@ export class MatchRenderer {
     }
 
     const seen = new Set<string>();
+    const tween = (target: object, vars: gsap.TweenVars, tag: string) => {
+      if ((target as { destroyed?: boolean }).destroyed) {
+        console.error(`TWEEN ON DESTROYED: ${tag}`, new Error("trace").stack);
+        return;
+      }
+      gsap.to(target, vars);
+    };
     const place = (card: Card, x: number, y: number, rotation: number, z: number, faceUp: boolean, scale = s, alpha = 1) => {
       seen.add(card.id);
       let sprite = this.sprites.get(card.id);
@@ -146,11 +153,12 @@ export class MatchRenderer {
         sprite.position.set(W / 2, H / 2);
         sprite.scale.set(scale);
       }
+      if (sprite.destroyed) console.error(`DESTROYED SPRITE REUSED: ${card.id}`, new Error("trace").stack);
       sprite.base = { x, y, rotation };
       sprite.zIndex = z;
       if (sprite.faceUp !== faceUp) this.flip(sprite, faceUp, dur);
-      gsap.to(sprite, { x, y: sprite.hovered ? y - 18 * s : y, rotation, alpha, duration: dur, ease: "power3.out", overwrite: "auto" });
-      gsap.to(sprite.scale, { x: scale, y: scale, duration: dur, ease: "power3.out" });
+      tween(sprite, { x, y: sprite.hovered ? y - 18 * s : y, rotation, alpha, duration: dur, ease: "power3.out", overwrite: "auto" }, `place ${card.id}`);
+      tween(sprite.scale, { x: scale, y: scale, duration: dur, ease: "power3.out" }, `place.scale ${card.id}`);
       return sprite;
     };
 
