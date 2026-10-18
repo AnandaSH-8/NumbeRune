@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { UsernameForm } from "@/components/layout/UsernameForm";
 import { Switch } from "@/components/ui/switch";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import type { Difficulty } from "@/game/types";
+import type { Difficulty } from "@/store/settings";
 import { playSound } from "@/lib/sound";
 import { useSettings, type CpuSpeed } from "@/store/settings";
 
