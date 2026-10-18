@@ -1,4 +1,5 @@
 import { Container, Graphics, Text } from "pixi.js";
+import gsap from "gsap";
 import { isPrime } from "@/engine/resolution";
 import type { Card } from "@/engine/types";
 import { BOARD_COLORS, CARD_H, CARD_W, DISPLAY_FONT, VALUE_COLORS } from "./theme";
@@ -75,5 +76,11 @@ export class MatchCardSprite extends Container {
     this.faceUp = up;
     this.face.visible = up;
     this.back.visible = !up;
+  }
+
+  /** Kill GSAP tweens first so no animation ever touches a destroyed sprite. */
+  override destroy(options?: Parameters<Container["destroy"]>[0]) {
+    gsap.killTweensOf([this, this.scale, this.body.scale]);
+    super.destroy(options);
   }
 }
