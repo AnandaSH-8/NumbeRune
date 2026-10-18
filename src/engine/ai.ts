@@ -32,5 +32,5 @@ export function chooseCpuModification(view: PlayerView): { cardId: string; bound
     const cand = r.kind === "value" ? { cardId: c.id, s: score(c.value, r.value) } : { cardId: c.id, s: 0, boundaryChoice: "keep" as const };
     if (!best || cand.s > best.s) best = cand;
   }
-  return { cardId: best!.cardId, boundaryChoice: best!.boundaryChoice };
+  return best!.boundaryChoice ? { cardId: best!.cardId, boundaryChoice: best!.boundaryChoice } : { cardId: best!.cardId };
 }

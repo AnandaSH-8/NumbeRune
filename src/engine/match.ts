@@ -36,7 +36,7 @@ export interface MatchOptions {
 }
 
 /** Internal mutable twin of MatchState used inside a single transition on a cloned copy. */
-type Mutable<T> = { -readonly [K in keyof T]: T[K] extends readonly (infer U)[] ? Mutable<U>[] : T[K] extends object ? Mutable<T[K]> : T[K] };
+type Mutable<T> = T extends readonly (infer U)[] ? Mutable<U>[] : T extends object ? { -readonly [K in keyof T]: Mutable<T[K]> } : T;
 type Draft = Mutable<MatchState> & { config: RuleConfig };
 
 interface StoredMatch extends MatchState {
@@ -76,13 +76,13 @@ export function createMatch(setup: readonly PlayerSetup[], options: MatchOptions
     winnerId: null,
   };
   startNextBattleOrEnd(draft);
-  return draft as StoredMatch;
+  return draft as unknown as StoredMatch;
 }
 
 function clone(state: MatchState): Draft {
-  const s = state as StoredMatch;
+  const s = state as unknown as StoredMatch;
   if (!s.config) throw new EngineError("State was not created by createMatch.");
-  return structuredClone(s) as Draft;
+  return structuredClone(s) as unknown as Draft;
 }
 
 function player(d: Draft, id: PlayerId) {
@@ -145,7 +145,7 @@ export function submitSelection(state: MatchState, playerId: PlayerId, cardId: s
 
   round.selections[playerId] = cardId;
   if (round.awaiting.every((id) => id in round.selections)) revealStep(d);
-  return d as StoredMatch;
+  return d as unknown as StoredMatch;
 }
 
 function revealStep(d: Draft) {
@@ -277,7 +277,7 @@ export function applyModification(
   d.resolvedBattle = null;
   d.pendingModification = null;
   startNextBattleOrEnd(d);
-  return d as StoredMatch;
+  return d as unknown as StoredMatch;
 }
 
 export function isMatchOver(state: MatchState): boolean {
