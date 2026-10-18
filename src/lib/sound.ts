@@ -32,7 +32,8 @@ function synthWav({ freqs, dur }: Tone): string {
   }
   const buf = new ArrayBuffer(44 + data.length * 2);
   const v = new DataView(buf);
-  const str = (o: number, s: string) => [...s].forEach((ch, k) => v.setUint8(o + k, ch.charCodeAt(0)));
+  const str = (o: number, s: string) =>
+    [...s].forEach((ch, k) => v.setUint8(o + k, ch.charCodeAt(0)));
   str(0, "RIFF");
   v.setUint32(4, 36 + data.length * 2, true);
   str(8, "WAVEfmt ");

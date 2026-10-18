@@ -14,7 +14,9 @@ export function isPrime(value: number): boolean {
 export function resolveRound(contenders: readonly Contender[]): RoundResolution {
   if (contenders.length === 0) throw new Error("A round needs at least one contender.");
 
-  const playedPrimes = [...new Set(contenders.map((c) => c.card.value).filter(isPrime))].sort((a, b) => a - b);
+  const playedPrimes = [...new Set(contenders.map((c) => c.card.value).filter(isPrime))].sort(
+    (a, b) => a - b,
+  );
   const primePlayed = playedPrimes.length > 0;
   const eliminations: Elimination[] = [];
 
@@ -66,9 +68,12 @@ export function resolveRound(contenders: readonly Contender[]): RoundResolution 
  * otherwise have won or tied), the configured fourEightWinPower applies.
  */
 export function classifyDecisivePower(resolution: RoundResolution, config: RuleConfig): Power {
-  if (!resolution.winnerId) throw new Error("Only a round with a single winner has a decisive power.");
+  if (!resolution.winnerId)
+    throw new Error("Only a round with a single winner has a decisive power.");
   if (resolution.fourEightApplied) {
-    const decidedByFourEight = resolution.eliminations.some((e) => e.card.value >= resolution.highestValue);
+    const decidedByFourEight = resolution.eliminations.some(
+      (e) => e.card.value >= resolution.highestValue,
+    );
     if (decidedByFourEight) return resolveFourEightWinPower(config);
   }
   const winner = resolution.survivors.find((c) => c.playerId === resolution.winnerId);

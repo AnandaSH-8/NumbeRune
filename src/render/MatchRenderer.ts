@@ -42,7 +42,13 @@ export class MatchRenderer {
   private backs: MatchCardSprite[] = [];
   private arenaLabel = new Text({
     text: "",
-    style: { fontFamily: DISPLAY_FONT, fontSize: 13, fontWeight: "700", fill: BOARD_COLORS.charcoal, align: "center" },
+    style: {
+      fontFamily: DISPLAY_FONT,
+      fontSize: 13,
+      fontWeight: "700",
+      fill: BOARD_COLORS.charcoal,
+      align: "center",
+    },
   });
   private arenaRing = new Graphics();
   private view: MatchBoardView | null = null;
@@ -124,7 +130,10 @@ export class MatchRenderer {
     };
 
     // Arena ring + label
-    this.arenaRing.clear().ellipse(W / 2, H / 2, Math.min(W * 0.34, 300 * s), ch * 0.95).stroke({ width: 2, color: BOARD_COLORS.saffron, alpha: 0.25 });
+    this.arenaRing
+      .clear()
+      .ellipse(W / 2, H / 2, Math.min(W * 0.34, 300 * s), ch * 0.95)
+      .stroke({ width: 2, color: BOARD_COLORS.saffron, alpha: 0.25 });
     this.arenaLabel.position.set(W / 2, H / 2);
     this.arenaLabel.text = view.arena.length === 0 ? "Battle arena" : "";
 
@@ -137,7 +146,13 @@ export class MatchRenderer {
       if (i < n) {
         b.visible = true;
         b.zIndex = 10 + i;
-        tween(b, { x: W / 2 + (i - (n - 1) / 2) * bStep, y: ch * 0.3 + 8, rotation: 0, duration: dur, ease: "power3.out" });
+        tween(b, {
+          x: W / 2 + (i - (n - 1) / 2) * bStep,
+          y: ch * 0.3 + 8,
+          rotation: 0,
+          duration: dur,
+          ease: "power3.out",
+        });
         tween(b.scale, { x: backScale, y: backScale, duration: dur });
       } else {
         b.visible = false;
@@ -145,7 +160,16 @@ export class MatchRenderer {
     }
 
     const seen = new Set<string>();
-    const place = (card: Card, x: number, y: number, rotation: number, z: number, faceUp: boolean, scale = s, alpha = 1) => {
+    const place = (
+      card: Card,
+      x: number,
+      y: number,
+      rotation: number,
+      z: number,
+      faceUp: boolean,
+      scale = s,
+      alpha = 1,
+    ) => {
       seen.add(card.id);
       let sprite = this.sprites.get(card.id);
       if (!sprite) {
@@ -156,7 +180,15 @@ export class MatchRenderer {
       sprite.base = { x, y, rotation };
       sprite.zIndex = z;
       if (sprite.faceUp !== faceUp) this.flip(sprite, faceUp, dur);
-      tween(sprite, { x, y: sprite.hovered ? y - 18 * s : y, rotation, alpha, duration: dur, ease: "power3.out", overwrite: "auto" });
+      tween(sprite, {
+        x,
+        y: sprite.hovered ? y - 18 * s : y,
+        rotation,
+        alpha,
+        duration: dur,
+        ease: "power3.out",
+        overwrite: "auto",
+      });
       tween(sprite.scale, { x: scale, y: scale, duration: dur, ease: "power3.out" });
       return sprite;
     };
@@ -168,7 +200,16 @@ export class MatchRenderer {
     const row = (cards: typeof cpuCards, y: number, zBase: number) => {
       const step = Math.min(cw * 0.62, (W - 60) / Math.max(1, cards.length));
       cards.forEach((a, i) => {
-        const sprite = place(a.card, W / 2 + (i - (cards.length - 1) / 2) * step, y, 0, zBase + i, a.faceUp, arenaScale, a.eliminated ? 0.4 : 1);
+        const sprite = place(
+          a.card,
+          W / 2 + (i - (cards.length - 1) / 2) * step,
+          y,
+          0,
+          zBase + i,
+          a.faceUp,
+          arenaScale,
+          a.eliminated ? 0.4 : 1,
+        );
         sprite.eventMode = "none";
       });
     };
@@ -182,7 +223,8 @@ export class MatchRenderer {
       const off = i - (hand.length - 1) / 2;
       const x = W / 2 + off * step;
       const selected = c.id === view.selectedId;
-      const y = H - ch * 0.55 - 12 + Math.abs(off) * Math.abs(off) * 1.2 * s - (selected ? 22 * s : 0);
+      const y =
+        H - ch * 0.55 - 12 + Math.abs(off) * Math.abs(off) * 1.2 * s - (selected ? 22 * s : 0);
       const sprite = place(c, x, y, off * 0.035, 200 + i, true);
       const selectable = view.selectableIds.has(c.id);
       sprite.eventMode = view.interactive && selectable ? "static" : "none";
@@ -202,14 +244,25 @@ export class MatchRenderer {
   private createSprite(card: Card) {
     const sprite = new MatchCardSprite(card);
     sprite.on("pointerover", () => {
-      if (sprite.destroyed || !this.view?.interactive || !this.view.selectableIds.has(card.id)) return;
+      if (sprite.destroyed || !this.view?.interactive || !this.view.selectableIds.has(card.id))
+        return;
       sprite.hovered = true;
-      gsap.to(sprite, { y: sprite.base.y - 18 * this.scaleFactor, rotation: 0, duration: 0.18, ease: "power2.out" });
+      gsap.to(sprite, {
+        y: sprite.base.y - 18 * this.scaleFactor,
+        rotation: 0,
+        duration: 0.18,
+        ease: "power2.out",
+      });
     });
     sprite.on("pointerout", () => {
       if (sprite.destroyed) return;
       sprite.hovered = false;
-      gsap.to(sprite, { y: sprite.base.y, rotation: sprite.base.rotation, duration: 0.2, ease: "power2.out" });
+      gsap.to(sprite, {
+        y: sprite.base.y,
+        rotation: sprite.base.rotation,
+        duration: 0.2,
+        ease: "power2.out",
+      });
     });
     sprite.on("pointertap", () => {
       if (sprite.destroyed) return;

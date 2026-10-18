@@ -73,7 +73,10 @@ export const useMatch = create<MatchStore>()((set, get) => {
     }
     // A fresh reveal happened when the round step or battle number moved on.
     const revealed =
-      next.battle && prev?.battle && (next.battle.round.reveals.length > prev.battle.round.reveals.length || next.battle.number !== prev.battle.number);
+      next.battle &&
+      prev?.battle &&
+      (next.battle.round.reveals.length > prev.battle.round.reveals.length ||
+        next.battle.number !== prev.battle.number);
     if (revealed) sfx("play");
     if (next.phase === "modifying" && prev?.phase !== "modifying") sfx("turn");
 
@@ -102,7 +105,12 @@ export const useMatch = create<MatchStore>()((set, get) => {
     newMatch: () => {
       clearTimer();
       const name = useSettings.getState().username || "You";
-      commit(createMatch([{ id: YOU, name }, { id: CPU, name: "Computer" }]));
+      commit(
+        createMatch([
+          { id: YOU, name },
+          { id: CPU, name: "Computer" },
+        ]),
+      );
     },
     select: (cardId) => {
       const { state, selectedId } = get();
@@ -115,7 +123,8 @@ export const useMatch = create<MatchStore>()((set, get) => {
       if (!selectedId) return;
       attempt((s) => submitSelection(s, YOU, selectedId));
     },
-    modify: (cardId, boundaryChoice) => attempt((s) => applyModification(s, YOU, cardId, boundaryChoice)),
+    modify: (cardId, boundaryChoice) =>
+      attempt((s) => applyModification(s, YOU, cardId, boundaryChoice)),
     stop: () => {
       clearTimer();
       set({ state: null, selectedId: null, notice: null });

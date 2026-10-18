@@ -14,10 +14,18 @@ export function Navbar() {
           <span className="font-display text-xl font-extrabold tracking-tight">Numberune</span>
         </Link>
         <div className="flex items-center gap-1 text-sm">
-          <Link to="/how-to-play" className="rounded-md px-3 py-1.5 text-muted-foreground hover:bg-muted hover:text-foreground" activeProps={{ className: "text-foreground" }}>
+          <Link
+            to="/how-to-play"
+            className="rounded-md px-3 py-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"
+            activeProps={{ className: "text-foreground" }}
+          >
             How to play
           </Link>
-          <Link to="/settings" className="rounded-md px-3 py-1.5 text-muted-foreground hover:bg-muted hover:text-foreground" activeProps={{ className: "text-foreground" }}>
+          <Link
+            to="/settings"
+            className="rounded-md px-3 py-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"
+            activeProps={{ className: "text-foreground" }}
+          >
             Settings
           </Link>
           {hydrated && username && (

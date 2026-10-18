@@ -21,16 +21,25 @@ export function chooseCpuCard(view: PlayerView, rng: Rng = Math.random): string 
 }
 
 /** Computer modification: improve its own captured cards as much as the power allows. */
-export function chooseCpuModification(view: PlayerView): { cardId: string; boundaryChoice?: BoundaryChoice } {
+export function chooseCpuModification(view: PlayerView): {
+  cardId: string;
+  boundaryChoice?: BoundaryChoice;
+} {
   const pending = view.pendingModification;
   if (!pending) throw new Error("No modification pending.");
   const cards = view.hand.filter((c) => pending.candidateIds.includes(c.id));
-  const score = (from: number, to: number) => to - from + (isPrime(to) ? 1.5 : 0) - (isPrime(from) ? 1.5 : 0);
+  const score = (from: number, to: number) =>
+    to - from + (isPrime(to) ? 1.5 : 0) - (isPrime(from) ? 1.5 : 0);
   let best: { cardId: string; s: number; boundaryChoice?: BoundaryChoice } | null = null;
   for (const c of cards) {
     const r = applyPower(c.value, pending.power);
-    const cand = r.kind === "value" ? { cardId: c.id, s: score(c.value, r.value) } : { cardId: c.id, s: 0, boundaryChoice: "keep" as const };
+    const cand =
+      r.kind === "value"
+        ? { cardId: c.id, s: score(c.value, r.value) }
+        : { cardId: c.id, s: 0, boundaryChoice: "keep" as const };
     if (!best || cand.s > best.s) best = cand;
   }
-  return best!.boundaryChoice ? { cardId: best!.cardId, boundaryChoice: best!.boundaryChoice } : { cardId: best!.cardId };
+  return best!.boundaryChoice
+    ? { cardId: best!.cardId, boundaryChoice: best!.boundaryChoice }
+    : { cardId: best!.cardId };
 }
