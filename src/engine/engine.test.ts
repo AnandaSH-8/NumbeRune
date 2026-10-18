@@ -10,7 +10,6 @@ import {
   getPlayerView,
   resolveRound,
   submitSelection,
-  UnresolvedRuleError,
   type MatchState,
   type RuleConfig,
 } from "./index";

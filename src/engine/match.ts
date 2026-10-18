@@ -182,7 +182,7 @@ function resolveCurrentRound(d: Draft) {
   battle.rounds.push({ active: round.active, reveals: round.reveals, plays: round.plays, resolution } as never);
 
   if (resolution.winnerId) {
-    // May throw UnresolvedRuleError; the caller's state is untouched because we work on a clone.
+    // The caller's state is untouched by anything below because we work on a clone.
     const power = classifyDecisivePower(resolution, d.config);
     endBattle(d, { kind: "won", winnerId: resolution.winnerId, power, reason: "decided" });
     return;
