@@ -42,7 +42,7 @@ const STEPS = [
   },
   {
     title: "The 1 is a bonus",
-    body: "Playing a 1 earns you an immediate extra pick. Chain several 1s to stack the battle in your favor.",
+    body: "Playing a 1 earns you an immediate extra pick, so you need another card with it. Lose the battle and your 1 comes back to you (the bonus card is lost); win it and your 1 is gone for good. You can never be left holding only a 1 — that knocks you out.",
   },
   {
     title: "Capture and modify",
