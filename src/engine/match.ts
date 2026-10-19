@@ -138,6 +138,13 @@ function startNextBattleOrEnd(d: Draft) {
   } satisfies Mutable<Battle>;
 }
 
+/** A 1 can only be played when the hand holds another card for the bonus play. */
+export function isPlayable(hand: readonly Card[], cardId: string): boolean {
+  const card = hand.find((c) => c.id === cardId);
+  if (!card) return false;
+  return card.value !== 1 || hand.some((c) => c.id !== cardId && c.value !== 1);
+}
+
 /** Players who still have to secretly pick a card right now. */
 export function awaitingPlayers(state: MatchState): readonly PlayerId[] {
   if (state.phase !== "selecting" || !state.battle) return [];
@@ -159,6 +166,8 @@ export function submitSelection(state: MatchState, playerId: PlayerId, cardId: s
   if (playerId in round.selections) throw new EngineError(`${playerId} already selected a card.`);
   if (!player(d, playerId).hand.some((c) => c.id === cardId))
     throw new EngineError("That card is not in the player's hand.");
+  if (!isPlayable(player(d, playerId).hand, cardId))
+    throw new EngineError("A 1 needs another card in hand for its bonus play.");
 
   round.selections[playerId] = cardId;
   if (round.awaiting.every((id) => id in round.selections)) revealStep(d);
@@ -214,7 +223,7 @@ function resolveCurrentRound(d: Draft) {
 
   // Tie: only tied players continue. A tied player with no cards cannot play another round.
   const next = resolveExhaustedTie(
-    resolution.leaders.filter((id) => player(d, id).hand.length > 0),
+    resolution.leaders.filter((id) => player(d, id).hand.some((c) => c.value !== 1)),
   );
   if (next.kind === "continue") battle.round = newRound(next.players);
   else endBattle(d, next.end);

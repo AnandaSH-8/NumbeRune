@@ -1,4 +1,4 @@
-import { applyPower } from "./match";
+import { applyPower, isPlayable } from "./match";
 import { isPrime } from "./resolution";
 import type { BoundaryChoice } from "./types";
 import type { PlayerView } from "./view";
@@ -7,10 +7,10 @@ export type Rng = () => number;
 
 /** Computer card pick. Uses only its own PlayerView, so it never sees hidden choices. */
 export function chooseCpuCard(view: PlayerView, rng: Rng = Math.random): string {
-  const hand = view.hand;
+  const hand = view.hand.filter((c) => isPlayable(view.hand, c.id));
   if (hand.length === 0) throw new Error("CPU has no cards to play.");
   // Mix of strong plays (high cards, primes) and occasional 1s for bonus plays.
-  const weight = (v: number) => (v === 1 ? 1.5 : isPrime(v) ? 2.5 : 1 + v / 5);
+  const weight = (v: number) => (v === 1 ? (view.hand.length <= 2 ? 0.3 : 1.5) : isPrime(v) ? 2.5 : 1 + v / 5);
   const total = hand.reduce((s, c) => s + weight(c.value), 0);
   let roll = rng() * total;
   for (const c of hand) {
