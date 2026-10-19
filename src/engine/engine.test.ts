@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
+  isPlayable,
+  applyModification,
   applyModification,
   awaitingPlayers,
   classifyDecisivePower,
@@ -201,18 +203,18 @@ describe("hidden selections", () => {
 
 describe("card 1 bonus plays", () => {
   it("chains while the player keeps playing 1s; only bonus players choose at bonus steps", () => {
-    let s = createMatch(two, { startingValues: { you: [1, 1, 1, 7], cpu: [6, 2] } });
+    let s = createMatch(two, { startingValues: { you: [1, 1, 7], cpu: [6, 2] } });
     s = pick(pick(s, "you", 1), "cpu", 6);
     expect(s.battle?.round.step).toBe(1);
     expect(awaitingPlayers(s)).toEqual(["you"]);
     s = pick(s, "you", 1);
     expect(awaitingPlayers(s)).toEqual(["you"]);
     s = pick(s, "you", 7);
-    // 7 vs 6: highest card → +1; winner captures all four played cards.
+    // 7 vs 6: highest → +1. Winner's played 1s are removed; captures 6 and 7.
     expect(s.phase).toBe("modifying");
     expect(s.pendingModification?.power).toBe("plus");
-    expect(s.pendingModification?.candidateIds).toHaveLength(4);
-    expect(values(s, "you")).toEqual([1, 1, 1, 6, 7]);
+    expect(s.pendingModification?.candidateIds).toHaveLength(2);
+    expect(values(s, "you")).toEqual([6, 7]);
   });
 
   it("several players who play 1 each get a bonus, revealed together", () => {
@@ -225,10 +227,36 @@ describe("card 1 bonus plays", () => {
     expect(s.history.length + (s.resolvedBattle ? 1 : 0)).toBe(1);
   });
 
-  it("a 1 with no cards left to follow is the player's battle card", () => {
-    let s = createMatch(two, { startingValues: { you: [1], cpu: [6, 3] } });
+  it("a lone 1 cannot be played", () => {
+    const s = createMatch(two, { startingValues: { you: [1, 4], cpu: [6, 3] } });
+    expect(isPlayable(getPlayer(s, "you").hand, getPlayer(s, "you").hand[0]!.id)).toBe(true);
+    const t = createMatch(two, { startingValues: { you: [1, 1], cpu: [6, 3] } });
+    expect(() => pick(t, "you", 1)).toThrow(EngineError);
+  });
+
+  it("player with only a 1 is out of the match", () => {
+    const s = createMatch(two, { startingValues: { you: [1], cpu: [6, 3] } });
+    expect(s.phase).toBe("matchOver");
+    expect(s.winnerId).toBe("cpu");
+  });
+
+  it("losing with a 1: the 1 returns, the bonus card is captured", () => {
+    let s = createMatch(two, { startingValues: { you: [1, 4, 9], cpu: [6, 3] } });
     s = pick(pick(s, "you", 1), "cpu", 6);
+    s = pick(s, "you", 4);
     expect(s.pendingModification?.winnerId).toBe("cpu");
+    expect(values(s, "you")).toEqual([1, 9]);
+    expect(values(s, "cpu")).toEqual([3, 4, 6]);
+  });
+
+  it("[1, X] and losing: X is captured, the 1 returns, player is eliminated", () => {
+    let s = createMatch(two, { startingValues: { you: [1, 4], cpu: [6, 3] } });
+    s = pick(pick(s, "you", 1), "cpu", 6);
+    s = pick(s, "you", 4);
+    s = applyModification(s, "cpu", s.pendingModification!.candidateIds[0]!);
+    expect(values(s, "you")).toEqual([1]);
+    expect(s.phase).toBe("matchOver");
+    expect(s.winnerId).toBe("cpu");
   });
 });
 
