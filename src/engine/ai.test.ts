@@ -57,7 +57,15 @@ describe("computer opponent legality", () => {
         (n, b) =>
           n +
           (b.modification?.outcome === "discarded" ? 1 : 0) +
-          (b.end.kind === "noWinner" ? b.captured.length : 0),
+          (b.end.kind === "noWinner" ? b.captured.length : 0) +
+          // Card 1 rule: the winner's played 1s leave the match.
+          (b.end.kind === "won"
+            ? b.rounds.reduce(
+                (k, r) =>
+                  k + (r.plays[(b.end as { winnerId: string }).winnerId] ?? []).filter((c) => c.value === 1).length,
+                0,
+              )
+            : 0),
         0,
       );
       expect(total + discarded).toBe(20);
