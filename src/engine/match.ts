@@ -104,8 +104,9 @@ function player(d: Draft, id: PlayerId) {
   return p;
 }
 
+/** A player stays in the match only with at least one non-1 card (a lone 1 cannot be played). */
 function playersWithCards(d: Draft): PlayerId[] {
-  return d.players.filter((p) => p.hand.length > 0).map((p) => p.id);
+  return d.players.filter((p) => p.hand.some((c) => c.value !== 1)).map((p) => p.id);
 }
 
 function newRound(active: PlayerId[]): Mutable<CurrentRound> {
@@ -137,6 +138,13 @@ function startNextBattleOrEnd(d: Draft) {
   } satisfies Mutable<Battle>;
 }
 
+/** A 1 can only be played when the hand holds another card for the bonus play. */
+export function isPlayable(hand: readonly Card[], cardId: string): boolean {
+  const card = hand.find((c) => c.id === cardId);
+  if (!card) return false;
+  return card.value !== 1 || hand.some((c) => c.id !== cardId && c.value !== 1);
+}
+
 /** Players who still have to secretly pick a card right now. */
 export function awaitingPlayers(state: MatchState): readonly PlayerId[] {
   if (state.phase !== "selecting" || !state.battle) return [];
@@ -158,6 +166,8 @@ export function submitSelection(state: MatchState, playerId: PlayerId, cardId: s
   if (playerId in round.selections) throw new EngineError(`${playerId} already selected a card.`);
   if (!player(d, playerId).hand.some((c) => c.id === cardId))
     throw new EngineError("That card is not in the player's hand.");
+  if (!isPlayable(player(d, playerId).hand, cardId))
+    throw new EngineError("A 1 needs another card in hand for its bonus play.");
 
   round.selections[playerId] = cardId;
   if (round.awaiting.every((id) => id in round.selections)) revealStep(d);
@@ -213,7 +223,7 @@ function resolveCurrentRound(d: Draft) {
 
   // Tie: only tied players continue. A tied player with no cards cannot play another round.
   const next = resolveExhaustedTie(
-    resolution.leaders.filter((id) => player(d, id).hand.length > 0),
+    resolution.leaders.filter((id) => player(d, id).hand.some((c) => c.value !== 1)),
   );
   if (next.kind === "continue") battle.round = newRound(next.players);
   else endBattle(d, next.end);
@@ -246,7 +256,20 @@ export function resolveExhaustedTie(
 
 function endBattle(d: Draft, end: BattleEnd) {
   const battle = d.battle!;
-  const captured = [...battle.pool];
+  const winnerId = end.kind === "won" ? end.winnerId : null;
+  // Card 1 rule: a played 1 is never captured. Non-winners get their 1 back;
+  // the winner's played 1 is permanently removed from the match.
+  const ones = new Set<string>();
+  for (const r of battle.rounds) {
+    for (const [pid, cards] of Object.entries(r.plays)) {
+      for (const c of cards) {
+        if (c.value !== 1) continue;
+        ones.add(c.id);
+        if (pid !== winnerId) player(d, pid).hand.push(c);
+      }
+    }
+  }
+  const captured = battle.pool.filter((c) => !ones.has(c.id));
   const record = {
     number: battle.number,
     participants: battle.participants,
@@ -257,7 +280,7 @@ function endBattle(d: Draft, end: BattleEnd) {
 
   if (end.kind === "won") player(d, end.winnerId).hand.push(...captured);
 
-  if (end.kind === "won" && end.power !== "none") {
+  if (end.kind === "won" && end.power !== "none" && captured.length > 0) {
     d.phase = "modifying";
     d.battle = null;
     d.resolvedBattle = record as never;

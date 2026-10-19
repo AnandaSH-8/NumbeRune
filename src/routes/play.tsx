@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { MatchBoard } from "@/components/game/MatchBoard";
 import { Button } from "@/components/ui/button";
 import { applyPower, awaitingPlayers, getPlayerView } from "@/engine/index";
+import { isPlayable } from "@/engine/match";
 import type { BattleRecord, Card, RoundRecord } from "@/engine/types";
 import type { ArenaCard, MatchBoardView } from "@/render/MatchRenderer";
 import { CPU, useMatch, YOU } from "@/store/match";
@@ -100,7 +101,8 @@ function PlayPage() {
     const onKey = (e: KeyboardEvent) => {
       const st = useMatch.getState().state;
       if (!st || st.phase !== "selecting" || !awaitingPlayers(st).includes(YOU)) return;
-      const hand = getPlayerView(st, YOU).hand;
+      const full = getPlayerView(st, YOU).hand;
+      const hand = full.filter((c) => isPlayable(full, c.id));
       if (hand.length === 0) return;
       const { selectedId } = useMatch.getState();
       const idx = hand.findIndex((c) => c.id === selectedId);
@@ -142,7 +144,9 @@ function PlayPage() {
     const myTurn = state.phase === "selecting" && awaitingPlayers(state).includes(YOU);
     return {
       hand: view.hand,
-      selectableIds: new Set(myTurn ? view.hand.map((c) => c.id) : []),
+      selectableIds: new Set(
+        myTurn ? view.hand.filter((c) => isPlayable(view.hand, c.id)).map((c) => c.id) : [],
+      ),
       selectedId,
       opponentCount: view.players.find((p) => p.id === CPU)?.cardCount ?? 0,
       arena,

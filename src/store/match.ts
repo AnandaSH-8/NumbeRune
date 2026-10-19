@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { chooseCpuCard, chooseCpuModification } from "@/engine/ai";
+import { isPlayable } from "@/engine/match";
 import {
   applyModification,
   awaitingPlayers,
@@ -50,7 +51,10 @@ export const useMatch = create<MatchStore>()((set, get) => {
           const view = getPlayerView(state, CPU);
           const pick =
             useSettings.getState().difficulty === "easy"
-              ? view.hand[Math.floor(Math.random() * view.hand.length)]!.id
+              ? (() => {
+                  const ok = view.hand.filter((c) => isPlayable(view.hand, c.id));
+                  return ok[Math.floor(Math.random() * ok.length)]!.id;
+                })()
               : chooseCpuCard(view);
           commit(submitSelection(state, CPU, pick));
         } else if (state.phase === "modifying" && state.pendingModification?.winnerId === CPU) {
