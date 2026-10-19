@@ -314,13 +314,14 @@ describe("card modification", () => {
     expect(gone.history[0]?.modification?.outcome).toBe("discarded");
   });
 
-  it("1 −1 needs a choice too", () => {
+  it("played 1s are never captured or modifiable", () => {
     let t = createMatch(two, { startingValues: { you: [1, 2, 5], cpu: [1, 6, 5] } });
     t = pick(pick(t, "you", 1), "cpu", 1);
     t = pick(pick(t, "you", 2), "cpu", 6); // 2 removes 6 → −1
     expect(t.pendingModification?.power).toBe("minus");
-    expect(() => applyModification(t, "you", "you#1")).toThrow(EngineError);
-    expect(values(applyModification(t, "you", "you#1", "keep"), "you")).toEqual([1, 1, 2, 5, 6]);
+    expect(t.pendingModification?.candidateIds).toHaveLength(2);
+    expect(values(t, "you")).toEqual([2, 5, 6]); // own 1 burned
+    expect(values(t, "cpu")).toEqual([1, 5]); // loser's 1 returned
   });
 });
 
